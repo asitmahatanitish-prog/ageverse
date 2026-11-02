@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101a35">
+  <meta name="description" content="Calculate your exact age with a beautiful, modern age calculator.">
+  <title>AgeVerse | Age Calculator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="loader" class="loader-screen">
+    <div class="loader-logo">AV</div>
+    <p>AgeVerse</p>
+    <span class="spinner"></span>
+  </div>
+
+  <!-- LOGIN -->
+  <section id="loginPage" class="auth-page hidden">
+    <div class="auth-decoration"></div>
+    <div class="auth-card">
+      <div class="brand-logo">AV</div>
+      <span class="eyebrow">YOUR TIME, YOUR STORY</span>
+      <h1>Discover your<br><span>age in detail.</span></h1>
+      <p class="muted">A smarter way to explore your age, birthday and life's milestones.</p>
+      <button id="googleLogin" class="google-btn">
+        <span class="google-icon">G</span>
+        Continue with Google
+      </button>
+      <p id="loginError" class="error-text"></p>
+      <p class="small-note">Secure sign-in powered by Firebase.</p>
+    </div>
+  </section>
+
+  <!-- NAME SETUP -->
+  <section id="namePage" class="auth-page hidden">
+    <div class="auth-card">
+      <div class="brand-logo">AV</div>
+      <span class="eyebrow">PERSONALIZE YOUR EXPERIENCE</span>
+      <h1>Welcome to<br><span>AgeVerse.</span></h1>
+      <p class="muted">What name should we use for you?</p>
+      <input id="setupName" type="text" maxlength="40" placeholder="Enter your name">
+      <button id="saveName" class="primary-btn">Continue <span>→</span></button>
+      <p id="nameError" class="error-text"></p>
+    </div>
+  </section>
+
+  <!-- MAIN APP -->
+  <div id="appPage" class="app-shell hidden">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">AV</div>
+        <div><strong>AgeVerse</strong><small>AGE CALCULATOR</small></div>
+      </div>
+
+      <p class="nav-label">WORKSPACE</p>
+      <button class="nav-btn active" data-page="home">
+        <span>⌂</span> Overview
+      </button>
+      <button class="nav-btn" data-page="profile">
+        <span>◉</span> My Profile
+      </button>
+
+      <div class="sidebar-bottom">
+        <button id="sideTheme" class="nav-btn">◐ Appearance</button>
+        <p>Made to explore your time.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">PERSONAL DASHBOARD</p>
+          <h2 id="greeting">Welcome!</h2>
+        </div>
+        <div class="top-actions">
+          <button id="themeToggle" class="icon-btn" title="Toggle theme">☀</button>
+          <button id="topProfile" class="avatar-btn">U</button>
+        </div>
+      </header>
+
+      <!-- HOME -->
+      <section id="homeSection" class="content-section">
+
+        <div class="hero-card">
+          <div class="hero-content">
+            <span class="hero-tag">✦ YOUR LIFE TIMELINE</span>
+            <h1>Every moment<br>has a <span>meaning.</span></h1>
+            <p>Discover exactly how long you've been living.</p>
+          </div>
+          <div class="hero-decoration">⏳</div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">AGE CALCULATOR</span>
+            <h2>Calculate your age</h2>
+          </div>
+        </div>
+
+        <div class="calculator-card">
+          <label for="dob">Your date of birth</label>
+          <input type="date" id="dob">
+          <div class="input-hint">Select your birth date to discover your age.</div>
+          <button id="calculateBtn" class="primary-btn">Calculate my age <span>→</span></button>
+          <p id="calcError" class="error-text"></p>
+        </div>
+
+        <section id="results" class="results hidden">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">YOUR AGE REPORT</span>
+              <h2>Your life in numbers</h2>
+            </div>
+          </div>
+
+          <div class="age-main-card">
+            <span class="eyebrow">YOU ARE</span>
+            <div class="age-big">
+              <strong id="years">0</strong>
+              <span>Years Old</span>
+            </div>
+            <p id="ageSub">0 months and 0 days</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>MONTHS</span>
+              <strong id="totalMonths">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>WEEKS</span>
+              <strong id="totalWeeks">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>DAYS</span>
+              <strong id="totalDays">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>HOURS</span>
+              <strong id="totalHours">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>MINUTES</span>
+              <strong id="totalMinutes">0</strong>
+            </div>
+            <div class="stat-card">
+              <span>SECONDS</span>
+              <strong id="totalSeconds">0</strong>
+            </div>
+          </div>
+
+          <div class="birthday-card">
+            <div class="birthday-icon">🎂</div>
+            <div>
+              <span class="eyebrow">NEXT BIRTHDAY</span>
+              <h3 id="birthdayCountdown">-- days to go</h3>
+              <p id="birthdayDate">Your next birthday</p>
+            </div>
+          </div>
+
+          <div class="birthday-card">
+            <div class="birthday-icon">📅</div>
+            <div>
+              <span class="eyebrow">BORN ON</span>
+              <h3 id="birthDay">--</h3>
+              <p id="birthDateText">Your birth date</p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- PROFILE -->
+      <section id="profileSection" class="content-section hidden">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">ACCOUNT SETTINGS</span>
+            <h2>My Profile</h2>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <img id="profilePhoto" class="profile-photo"
+               src="https://www.gravatar.com/avatar/?d=mp"
+               alt="Profile">
+         <input type="file"id="profilePhotoInput"accept="image/*" hidden>
+
+<button type="button" id="choosePhotoBtn" class="primary-btn">
+  Choose Profile Photo</button>
+          <h2 id="profileName">User</h2>
+          <p id="profileEmail" class="muted"></p>
+
+          <div class="profile-field">
+            <label>Your display name</label>
+            <input id="editNameInput" type="text" maxlength="40">
+          </div>
+
+          <button id="updateProfile" class="primary-btn">Save changes</button>
+          <p id="profileMessage" class="error-text"></p>
+          <button id="logoutBtn" class="logout-btn">Sign out</button>
+        </div>
+      </section>
+
+      <footer>© 2026 AgeVerse · Make every moment count.</footer>
+    </main>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
