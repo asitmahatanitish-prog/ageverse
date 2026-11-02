@@ -586,4 +586,41 @@ if ("serviceWorker" in navigator) {
         );
       });
   });
+  }
+
+
+/* Ageverse Birthday Notification Permission */
+
+const birthdayNotifyBtn = document.getElementById("birthdayNotifyBtn");
+const birthdayNotifyStatus = document.getElementById("birthdayNotifyStatus");
+
+if (birthdayNotifyBtn) {
+  birthdayNotifyBtn.addEventListener("click", async () => {
+
+    if (!("Notification" in window)) {
+      birthdayNotifyStatus.textContent =
+        "Notifications are not supported on this device.";
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+
+    if (permission === "granted") {
+      birthdayNotifyStatus.textContent =
+        "Birthday notification permission enabled! 🎉";
+
+      const registration = await navigator.serviceWorker.ready;
+
+      await registration.showNotification("Ageverse", {
+        body: "Birthday notifications are enabled!",
+        icon: "./icon-192.png",
+        badge: "./icon-192.png"
+      });
+
+    } else {
+      birthdayNotifyStatus.textContent =
+        "Please allow notifications in your app settings.";
+    }
+  });
 }
+
