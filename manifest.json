@@ -1,0 +1,12 @@
+{
+  "name": "Ageverse - Age Calculator 2026",
+  "short_name": "Ageverse",
+  "description": "Calculate your exact age with Ageverse.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#101a35",
+  "theme_color": "#101a35",
+  "categories": ["utilities", "lifestyle"]
+}
