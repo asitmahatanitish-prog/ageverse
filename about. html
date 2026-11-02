@@ -1,0 +1,193 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>About Us | Ageverse</title>
+
+<meta name="description" content="Learn about Ageverse, a simple online age calculator designed to help you calculate your age easily.">
+
+<meta name="robots" content="index, follow">
+
+<link rel="canonical" href="https://asitmahatanitish-prog.github.io/ageverse/about.html">
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #0b1224;
+  color: #ffffff;
+  line-height: 1.7;
+}
+
+header {
+  padding: 20px;
+  background: #101a35;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 23px;
+  font-weight: bold;
+  color: #69a7ff;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  margin-left: 15px;
+  font-size: 14px;
+}
+
+.container {
+  max-width: 850px;
+  margin: 45px auto;
+  padding: 20px;
+}
+
+.hero {
+  text-align: center;
+  padding: 35px 20px;
+  background: #142448;
+  border-radius: 18px;
+  margin-bottom: 25px;
+}
+
+.hero h1 {
+  color: #72adff;
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.card {
+  background: #142448;
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #263b65;
+}
+
+.card h2 {
+  color: #72adff;
+  margin-bottom: 12px;
+}
+
+.card p {
+  color: #d5def0;
+}
+
+.button {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 12px 22px;
+  background: #2676ed;
+  color: white;
+  text-decoration: none;
+  border-radius: 9px;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  background: #101a35;
+  color: #aab8d0;
+}
+
+@media(max-width:600px) {
+  .hero h1 {
+    font-size: 26px;
+  }
+
+  nav a {
+    margin-left: 8px;
+  }
+
+  .container {
+    margin: 20px auto;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div class="logo">Ageverse</div>
+  <nav>
+    <a href="./">Home</a>
+    <a href="about.html">About</a>
+  </nav>
+</header>
+
+<main class="container">
+
+  <section class="hero">
+    <h1>About Ageverse</h1>
+    <p>Your Time, Your Story.</p>
+  </section>
+
+  <section class="card">
+    <h2>Who We Are</h2>
+    <p>
+      Welcome to Ageverse! Ageverse is an online age
+      calculator designed to make calculating your age
+      simple and convenient.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Our Mission</h2>
+    <p>
+      Our mission is to provide a simple and user-friendly
+      experience where people can calculate their age
+      quickly using their date of birth.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>What We Offer</h2>
+    <p>
+      Ageverse provides an easy-to-use online age
+      calculation experience. Our goal is to make
+      everyday age calculations accessible to everyone.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Our Vision</h2>
+    <p>
+      We aim to continuously improve Ageverse and make
+      it a helpful and reliable online tool for users.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Contact Us</h2>
+    <p>
+      Have questions or suggestions? We welcome your
+      feedback and suggestions to improve Ageverse.
+    </p>
+  </section>
+
+  <center>
+    <a href="./" class="button">Back to Home</a>
+  </center>
+
+</main>
+
+<footer>
+  <p>© 2026 Ageverse. All Rights Reserved.</p>
+  <p>Your Time, Your Story.</p>
+</footer>
+
+</body>
+</html>
