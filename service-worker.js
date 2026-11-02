@@ -1,4 +1,4 @@
-const CACHE_NAME = "ageverse-v1";
+const CACHE_NAME = "ageverse-v2";
 
 const FILES_TO_CACHE = [
   "./",
