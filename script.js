@@ -567,3 +567,23 @@ const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
 if (savedPhoto) {
   profilePhoto.src = savedPhoto;
 }
+/* Ageverse PWA Service Worker Registration */
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("./service-worker.js")
+      .then(registration => {
+        console.log(
+          "Ageverse Service Worker registered:",
+          registration.scope
+        );
+      })
+      .catch(error => {
+        console.error(
+          "Service Worker registration failed:",
+          error
+        );
+      });
+  });
+}
