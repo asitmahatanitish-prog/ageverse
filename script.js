@@ -268,7 +268,7 @@ $("updateProfile").addEventListener("click", async () => {
     currentName = name;
     $("profileName").textContent = name;
     $("greeting").textContent = "Welcome, " + name;
-    $("homeName").textContent = name;
+    
     $("topProfile").textContent =
       name.charAt(0).toUpperCase();
 
