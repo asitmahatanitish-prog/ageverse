@@ -689,30 +689,41 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+
 // ======================================
-// 15. OPTIONAL BIRTHDAY NOTIFICATION
+// 15. BIRTHDAY NOTIFICATION SETTINGS
 // ======================================
 
 const birthdayNotifyBtn = $("birthdayNotifyBtn");
 const birthdayNotifyStatus = $("birthdayNotifyStatus");
 
 birthdayNotifyBtn?.addEventListener("click", async () => {
+
   if (!("Notification" in window)) {
-    if (birthdayNotifyStatus) {
-      birthdayNotifyStatus.textContent =
-        "Notifications are not supported on this device.";
-    }
+    birthdayNotifyStatus.textContent =
+      "Your browser does not support notifications.";
+    return;
+  }
+
+  // Permission already blocked
+  if (Notification.permission === "denied") {
+    birthdayNotifyStatus.textContent =
+      "Notifications are blocked. Please open Chrome Settings > Site settings > Notifications and allow notifications for Ageverse.";
     return;
   }
 
   try {
-    const permission = await Notification.requestPermission();
+    let permission = Notification.permission;
+
+    // Ask permission only after user clicks
+    if (permission === "default") {
+      permission = await Notification.requestPermission();
+    }
 
     if (permission === "granted") {
-      if (birthdayNotifyStatus) {
-        birthdayNotifyStatus.textContent =
-          "Birthday notification permission enabled! 🎉";
-      }
+
+      birthdayNotifyStatus.textContent =
+        "Notifications enabled successfully! 🎉";
 
       const registration = await navigator.serviceWorker.ready;
 
@@ -722,17 +733,19 @@ birthdayNotifyBtn?.addEventListener("click", async () => {
         badge: "./icon-192.png"
       });
 
-    } else if (birthdayNotifyStatus) {
+    } else if (permission === "denied") {
+
       birthdayNotifyStatus.textContent =
-        "Notification permission was not granted.";
+        "Please go to Chrome Settings > Site settings > Notifications and enable notifications for Ageverse.";
+
     }
+
   } catch (error) {
     console.error("Notification Error:", error);
 
-    if (birthdayNotifyStatus) {
-      birthdayNotifyStatus.textContent =
-        "Unable to enable notifications.";
-    }
+    birthdayNotifyStatus.textContent =
+      "Unable to enable notifications. Please check your browser settings.";
   }
 });
+
 
