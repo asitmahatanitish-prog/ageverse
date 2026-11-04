@@ -1,4 +1,5 @@
-const CACHE_NAME = "ageverse-v2";
+
+const CACHE_NAME = "ageverse-v3";
 
 const FILES_TO_CACHE = [
   "./",
@@ -10,6 +11,7 @@ const FILES_TO_CACHE = [
   "./icon-512.png"
 ];
 
+// INSTALL
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -18,41 +20,86 @@ self.addEventListener("install", event => {
   );
 });
 
+// ACTIVATE
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
+    caches.keys()
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
+// FETCH
 self.addEventListener("fetch", event => {
-  if (event.request.method !== "GET") return;
+  const request = event.request;
 
-  const url = new URL(event.request.url);
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
 
   if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === "navigate") {
+  const isHTML = request.mode === "navigate";
+
+  const isCode =
+    url.pathname.endsWith(".js") ||
+    url.pathname.endsWith(".css");
+
+  // NETWORK FIRST: HTML, JavaScript and CSS
+  if (isHTML || isCode) {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME)
-            .then(cache => cache.put("./index.html", copy));
+          if (response.ok) {
+            const copy = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put(request, copy));
+          }
+
           return response;
         })
-        .catch(() => caches.match("./index.html"))
+        .catch(async () => {
+          const cached = await caches.match(request);
+
+          if (cached) return cached;
+
+          if (isHTML) {
+            return caches.match("./index.html");
+          }
+
+          return new Response(
+            "File unavailable offline",
+            { status: 503 }
+          );
+        })
     );
+
     return;
   }
 
+  // CACHE FIRST: Images and other static files
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => cached || fetch(event.request))
+    caches.match(request)
+      .then(cached => {
+        if (cached) return cached;
+
+        return fetch(request).then(response => {
+          if (response.ok) {
+            const copy = response.clone();
+
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put(request, copy));
+          }
+
+          return response;
+        });
+      })
   );
 });
