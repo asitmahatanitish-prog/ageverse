@@ -1,32 +1,35 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta name="google-site-verification" content="H66YZNwkQ7h6-PhBJLr1dWaIYP-t4dbyoZYbEwQ5VhQ" />
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="google-site-verification" content="H66YZNwkQ7h6-PhBJLr1dWaIYP-t4dbyoZYbEwQ5VhQ">
+
   <meta name="theme-color" content="#101a35">
-  <meta name="description" content="Calculate your exact age with a beautiful, modern age calculator.">
-  <meta name="keywords" content="Age Calculator, Online Age Calculator, Date of Birth Calculator, Age Calculator Online">
-<meta name="author" content="Ageverse">
-<meta name="robots" content="index, follow">
-  
-<link rel="canonical" href="https://asitmahatanitish-prog.github.io/ageverse/">
+  <meta name="description" content="Calculate your exact age online with Ageverse. Discover your age in years, months, days, hours, minutes and seconds, and find your next birthday.">
+  <meta name="keywords" content="Age Calculator, Age Calculator 2026, Online Age Calculator, Date of Birth Calculator">
+  <meta name="author" content="Ageverse">
+  <meta name="robots" content="index, follow">
 
-<meta property="og:type" content="website">
-<meta property="og:title" content="Age Calculator 2026 | Ageverse">
-<meta property="og:description" content="Calculate your exact age in years, months, days and more with Ageverse.">
-<meta property="og:url" content="https://asitmahatanitish-prog.github.io/ageverse/">
-<meta property="og:site_name" content="Ageverse">
+  <link rel="canonical" href="https://asitmahatanitish-prog.github.io/ageverse/">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./style.css">
 
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Age Calculator 2026 | Ageverse">
-<meta name="twitter:description" content="Calculate your exact age online with Ageverse.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Age Calculator 2026 | Ageverse">
+  <meta property="og:description" content="Calculate your exact age in years, months, days and more with Ageverse.">
+  <meta property="og:url" content="https://asitmahatanitish-prog.github.io/ageverse/">
+  <meta property="og:site_name" content="Ageverse">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Age Calculator 2026 | Ageverse">
+  <meta name="twitter:description" content="Calculate your exact age online with Ageverse.">
 
   <title>Age Calculator 2026 - Calculate Your Exact Age | Ageverse</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="./manifest.json">
-  
 </head>
+
 <body>
 
   <div id="loader" class="loader-screen">
@@ -43,11 +46,13 @@
       <span class="eyebrow">YOUR TIME, YOUR STORY</span>
       <h1>Discover your<br><span>age in detail.</span></h1>
       <p class="muted">A smarter way to explore your age, birthday and life's milestones.</p>
-      <button id="googleLogin" class="google-btn">
+
+      <button id="googleLogin" class="google-btn" type="button">
         <span class="google-icon">G</span>
         Continue with Google
       </button>
-      <p id="loginError" class="error-text"></p>
+
+      <p id="loginError" class="error-text" aria-live="polite"></p>
       <p class="small-note">Secure sign-in powered by Firebase.</p>
     </div>
   </section>
@@ -59,9 +64,14 @@
       <span class="eyebrow">PERSONALIZE YOUR EXPERIENCE</span>
       <h1>Welcome to<br><span>AgeVerse.</span></h1>
       <p class="muted">What name should we use for you?</p>
+
+      <label for="setupName">Your name</label>
       <input id="setupName" type="text" maxlength="40" placeholder="Enter your name">
-      <button id="saveName" class="primary-btn">Continue <span>→</span></button>
-      <p id="nameError" class="error-text"></p>
+
+      <button id="saveName" class="primary-btn" type="button">
+        Continue <span>→</span>
+      </button>
+      <p id="nameError" class="error-text" aria-live="polite"></p>
     </div>
   </section>
 
@@ -71,32 +81,39 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-logo">AV</div>
-        <div><strong>AgeVerse</strong><small>AGE CALCULATOR</small></div>
+        <div>
+          <strong>AgeVerse</strong>
+          <small>AGE CALCULATOR</small>
+        </div>
       </div>
 
       <p class="nav-label">WORKSPACE</p>
-      <button class="nav-btn active" data-page="home">
+
+      <button class="nav-btn active" data-page="home" type="button">
         <span>⌂</span> Overview
       </button>
-      <button class="nav-btn" data-page="profile">
+
+      <button class="nav-btn" data-page="profile" type="button">
         <span>◉</span> My Profile
       </button>
 
       <div class="sidebar-bottom">
-        <button id="sideTheme" class="nav-btn">◐ Appearance</button>
+        <button id="sideTheme" class="nav-btn" type="button">◐ Appearance</button>
         <p>Made to explore your time.</p>
       </div>
     </aside>
 
     <main class="main-content">
+
       <header class="topbar">
         <div>
           <p class="eyebrow">PERSONAL DASHBOARD</p>
           <h2 id="greeting">Welcome!</h2>
         </div>
+
         <div class="top-actions">
-          <button id="themeToggle" class="icon-btn" title="Toggle theme">☀</button>
-          <button id="topProfile" class="avatar-btn">U</button>
+          <button id="themeToggle" class="icon-btn" title="Toggle theme" type="button">☀</button>
+          <button id="topProfile" class="avatar-btn" type="button">U</button>
         </div>
       </header>
 
@@ -109,7 +126,7 @@
             <h1>Every moment<br>has a <span>meaning.</span></h1>
             <p>Discover exactly how long you've been living.</p>
           </div>
-          <div class="hero-decoration">⏳</div>
+          <div class="hero-decoration" aria-hidden="true">⏳</div>
         </div>
 
         <div class="section-heading">
@@ -123,8 +140,12 @@
           <label for="dob">Your date of birth</label>
           <input type="date" id="dob">
           <div class="input-hint">Select your birth date to discover your age.</div>
-          <button id="calculateBtn" class="primary-btn">Calculate my age <span>→</span></button>
-          <p id="calcError" class="error-text"></p>
+
+          <button id="calculateBtn" class="primary-btn" type="button">
+            Calculate my age <span>→</span>
+          </button>
+
+          <p id="calcError" class="error-text" aria-live="polite"></p>
         </div>
 
         <section id="results" class="results hidden">
@@ -145,38 +166,20 @@
           </div>
 
           <div class="stats-grid">
-            <div class="stat-card">
-              <span>MONTHS</span>
-              <strong id="totalMonths">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>WEEKS</span>
-              <strong id="totalWeeks">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>DAYS</span>
-              <strong id="totalDays">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>HOURS</span>
-              <strong id="totalHours">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>MINUTES</span>
-              <strong id="totalMinutes">0</strong>
-            </div>
-            <div class="stat-card">
-              <span>SECONDS</span>
-              <strong id="totalSeconds">0</strong>
-            </div>
+            <div class="stat-card"><span>MONTHS</span><strong id="totalMonths">0</strong></div>
+            <div class="stat-card"><span>WEEKS</span><strong id="totalWeeks">0</strong></div>
+            <div class="stat-card"><span>DAYS</span><strong id="totalDays">0</strong></div>
+            <div class="stat-card"><span>HOURS</span><strong id="totalHours">0</strong></div>
+            <div class="stat-card"><span>MINUTES</span><strong id="totalMinutes">0</strong></div>
+            <div class="stat-card"><span>SECONDS</span><strong id="totalSeconds">0</strong></div>
           </div>
 
           <div class="birthday-card">
             <button id="birthdayNotifyBtn" type="button">
-                  🔔 Enable Birthday Notifications
+              🔔 Enable Birthday Notifications
             </button>
+            <p id="birthdayNotifyStatus" aria-live="polite"></p>
 
-<p id="birthdayNotifyStatus"></p>
             <div class="birthday-icon">🎂</div>
             <div>
               <span class="eyebrow">NEXT BIRTHDAY</span>
@@ -206,45 +209,52 @@
         </div>
 
         <div class="profile-card">
-          <img id="profilePhoto" class="profile-photo"
-               src="https://www.gravatar.com/avatar/?d=mp"
-               alt="Profile">
-         <input type="file" id="profilePhotoInput" accept="image/*" hidden>
+          <img
+            id="profilePhoto"
+            class="profile-photo"
+            src="https://www.gravatar.com/avatar/?d=mp"
+            alt="User profile photo"
+            width="120"
+            height="120"
+          >
 
-<button type="button" id="choosePhotoBtn" class="primary-btn">
-  Choose Profile Photo</button>
+          <input type="file" id="profilePhotoInput" accept="image/*" hidden>
+
+          <button type="button" id="choosePhotoBtn" class="primary-btn">
+            Choose Profile Photo
+          </button>
+
           <h2 id="profileName">User</h2>
           <p id="profileEmail" class="muted"></p>
 
           <div class="profile-field">
-            <label>Your display name</label>
+            <label for="editNameInput">Your display name</label>
             <input id="editNameInput" type="text" maxlength="40">
           </div>
 
-          <button id="updateProfile" class="primary-btn">Save changes</button>
-          <p id="profileMessage" class="error-text"></p>
-          <button id="logoutBtn" class="logout-btn">Sign out</button>
+          <button id="updateProfile" class="primary-btn" type="button">Save changes</button>
+          <p id="profileMessage" class="error-text" aria-live="polite"></p>
+          <button id="logoutBtn" class="logout-btn" type="button">Sign out</button>
         </div>
       </section>
 
-      
-<footer style="text-align:center;padding:25px 15px;margin-top:30px;">
-    <h2>Ageverse</h2>
-    <p>Your Smart Age Calculator</p>
+      <footer style="text-align:center;padding:25px 15px;margin-top:30px;">
+        <h2>Ageverse</h2>
+        <p>Your Smart Age Calculator</p>
 
-    <nav style="display:flex;justify-content:center;flex-wrap:wrap;gap:18px;margin:20px 0;">
-        <a href="about.html">About Us</a>
-        <a href="contact.html">Contact Us</a>
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="terms.html">Terms & Conditions</a>
-    </nav>
+        <nav aria-label="Footer navigation" style="display:flex;justify-content:center;flex-wrap:wrap;gap:18px;margin:20px 0;">
+          <a href="about.html">About Us</a>
+          <a href="contact.html">Contact Us</a>
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms &amp; Conditions</a>
+        </nav>
 
-    <p>© 2026 Ageverse. All Rights Reserved.</p>
-</footer>
+        <p>© 2026 Ageverse. All Rights Reserved.</p>
+      </footer>
 
     </main>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <script type="module" src="./script.js"></script>
 </body>
 </html>
