@@ -945,3 +945,109 @@ footer nav a:hover {
     transition-duration: .01ms !important;
   }
 }
+
+/* PREMIUM BIRTHDAY NOTIFICATION CARD */
+
+.notification-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 25px;
+  margin: 25px 0;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid rgba(130, 140, 255, 0.25);
+  background: linear-gradient(
+    135deg,
+    #17264c,
+    #252d68,
+    #493b87
+  );
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(20, 30, 90, 0.25);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 28px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-label {
+  color: #b8c1ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.notification-content h3 {
+  margin: 9px 0;
+  font-size: 22px;
+  color: #ffffff;
+}
+
+.notification-content p {
+  color: #d0d7f0;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.notification-enable-btn {
+  width: 100%;
+  max-width: 280px;
+  min-height: 54px;
+  margin-top: 12px;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 0;
+  border-radius: 15px;
+  background: linear-gradient(100deg, #536cff, #9564ef);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.notification-enable-btn:active {
+  transform: scale(0.98);
+}
+
+.notification-arrow {
+  font-size: 23px;
+}
+
+.notification-status {
+  margin-top: 12px;
+  font-size: 12px !important;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .notification-card {
+    padding: 19px;
+    gap: 13px;
+  }
+
+  .notification-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 23px;
+  }
+
+  .notification-content h3 {
+    font-size: 19px;
+  }
+}
