@@ -1,5 +1,4 @@
-import { initializeApp } from
-  "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 
 import {
   getAuth,
@@ -22,11 +21,6 @@ import {
 // 1. FIREBASE CONFIGURATION
 // ======================================
 
-// Firebase Console > Project Settings > General
-// থেকে নিজের Web App Configuration বসাও।
-
-
-  
 const firebaseConfig = {
   apiKey: "AIzaSyD1p7QysavkEfkTxRzQTltKl43uODz6Cug",
   authDomain: "age-calculator-ea3d5.firebaseapp.com",
@@ -41,80 +35,85 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Initialize Firebase
-
-
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
   prompt: "select_account"
 });
 
 // ======================================
-// 2. ELEMENTS
+// 2. ELEMENTS AND HELPERS
 // ======================================
 
 const $ = id => document.getElementById(id);
 
-const loader = $("loader");
-const loginPage = $("loginPage");
-const namePage = $("namePage");
-const appPage = $("appPage");
-
 let currentUser = null;
 let currentName = "";
+let ageTimer = null;
+let selectedBirthDate = null;
+
+function setText(id, value) {
+  const element = $(id);
+  if (element) element.textContent = value;
+}
+
+function showError(id, message) {
+  setText(id, message);
+}
 
 // ======================================
 // 3. PAGE NAVIGATION
 // ======================================
 
 function showPage(page) {
-  loginPage.classList.add("hidden");
-  namePage.classList.add("hidden");
-  appPage.classList.add("hidden");
+  ["loginPage", "namePage", "appPage"].forEach(id => {
+    $(id)?.classList.add("hidden");
+  });
 
-  if (page === "login") loginPage.classList.remove("hidden");
-  if (page === "name") namePage.classList.remove("hidden");
-  if (page === "app") appPage.classList.remove("hidden");
+  const pageIds = {
+    login: "loginPage",
+    name: "namePage",
+    app: "appPage"
+  };
+
+  $(pageIds[page])?.classList.remove("hidden");
 }
 
 function showSection(section) {
-  $("homeSection").classList.add("hidden");
-  $("profileSection").classList.add("hidden");
+  $("homeSection")?.classList.add("hidden");
+  $("profileSection")?.classList.add("hidden");
 
   document.querySelectorAll(".nav-btn[data-page]")
     .forEach(btn => btn.classList.remove("active"));
 
   if (section === "home") {
-    $("homeSection").classList.remove("hidden");
+    $("homeSection")?.classList.remove("hidden");
     document.querySelector('[data-page="home"]')
-      .classList.add("active");
+      ?.classList.add("active");
   } else {
-    $("profileSection").classList.remove("hidden");
+    $("profileSection")?.classList.remove("hidden");
     document.querySelector('[data-page="profile"]')
-      .classList.add("active");
+      ?.classList.add("active");
+
     loadProfile();
   }
 
-  window.scrollTo(0, 0);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 // ======================================
 // 4. GOOGLE LOGIN
 // ======================================
 
-$("googleLogin").addEventListener("click", async () => {
-  $("loginError").textContent = "";
+$("googleLogin")?.addEventListener("click", async () => {
+  showError("loginError", "");
 
   try {
     await signInWithPopup(auth, googleProvider);
   } catch (error) {
     console.error("Google Login Error:", error);
-    $("loginError").textContent = error.message;
+    showError("loginError", error.message);
   }
 });
-
-
-
 
 // ======================================
 // 5. AUTHENTICATION STATE
@@ -124,8 +123,9 @@ onAuthStateChanged(auth, async user => {
   currentUser = user;
 
   if (!user) {
+    currentName = "";
     showPage("login");
-    loader.classList.add("hidden");
+    $("loader")?.classList.add("hidden");
     return;
   }
 
@@ -137,44 +137,46 @@ onAuthStateChanged(auth, async user => {
       currentName = userSnap.data().name;
       openDashboard();
     } else {
-      $("setupName").value = user.displayName || "";
+      if ($("setupName")) {
+        $("setupName").value = user.displayName || "";
+      }
       showPage("name");
     }
-
   } catch (error) {
-    console.error(error);
-    alert("Firebase Error: " + error.code + " - " + error.message);
+    console.error("Firebase Error:", error);
+    showError("nameError", error.message);
     showPage("name");
+  } finally {
+    $("loader")?.classList.add("hidden");
   }
-
-  loader.classList.add("hidden");
 });
 
 // ======================================
 // 6. SAVE USER NAME
 // ======================================
 
-$("saveName").addEventListener("click", async () => {
+$("saveName")?.addEventListener("click", async () => {
   if (!currentUser) return;
 
-  const name = $("setupName").value.trim();
+  const name = $("setupName")?.value.trim() || "";
 
   if (name.length < 2) {
-    $("nameError").textContent =
-      "Please enter at least 2 characters.";
+    showError("nameError", "Please enter at least 2 characters.");
     return;
   }
 
-  $("nameError").textContent = "";
-  $("saveName").disabled = true;
-  $("saveName").textContent = "Saving...";
+  showError("nameError", "");
+
+  const button = $("saveName");
+  button.disabled = true;
+  button.textContent = "Saving...";
 
   try {
     await setDoc(doc(db, "users", currentUser.uid), {
-      name: name,
-      email: currentUser.email,
+      name,
+      email: currentUser.email || "",
       photoURL: currentUser.photoURL || "",
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp()
     }, { merge: true });
 
     await updateProfile(currentUser, {
@@ -185,10 +187,11 @@ $("saveName").addEventListener("click", async () => {
     openDashboard();
 
   } catch (error) {
-    $("nameError").textContent = error.message;
+    console.error(error);
+    showError("nameError", error.message);
   } finally {
-    $("saveName").disabled = false;
-    $("saveName").innerHTML = 'Continue <span>→</span>';
+    button.disabled = false;
+    button.innerHTML = 'Continue <span>→</span>';
   }
 });
 
@@ -199,18 +202,22 @@ $("saveName").addEventListener("click", async () => {
 function openDashboard() {
   showPage("app");
 
-  $("greeting").textContent = "Welcome, " + currentName;
-  
+  setText("greeting", "Welcome, " + currentName);
+  setText("profileName", currentName);
+  setText("profileEmail", currentUser?.email || "");
 
-  $("profileName").textContent = currentName;
-  $("profileEmail").textContent = currentUser.email || "";
-  $("editNameInput").value = currentName;
+  if ($("editNameInput")) {
+    $("editNameInput").value = currentName;
+  }
 
-  const photo = currentUser.photoURL;
-  if (photo) $("profilePhoto").src = photo;
+  setText("topProfile", currentName.charAt(0).toUpperCase());
 
-  $("topProfile").textContent =
-    currentName.charAt(0).toUpperCase();
+  const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
+  const photo = savedPhoto || currentUser?.photoURL;
+
+  if (photo && $("profilePhoto")) {
+    $("profilePhoto").src = photo;
+  }
 
   showSection("home");
 }
@@ -223,41 +230,43 @@ async function loadProfile() {
   if (!currentUser) return;
 
   try {
-    const snap = await getDoc(
-      doc(db, "users", currentUser.uid)
-    );
+    const snap = await getDoc(doc(db, "users", currentUser.uid));
 
     if (snap.exists()) {
       currentName = snap.data().name || currentName;
     }
 
-    $("profileName").textContent = currentName;
-    $("profileEmail").textContent = currentUser.email || "";
-    $("editNameInput").value = currentName;
+    setText("profileName", currentName);
+    setText("profileEmail", currentUser.email || "");
+    setText("greeting", "Welcome, " + currentName);
+
+    if ($("editNameInput")) {
+      $("editNameInput").value = currentName;
+    }
 
   } catch (error) {
-    $("profileMessage").textContent = error.message;
+    showError("profileMessage", error.message);
   }
 }
 
-$("updateProfile").addEventListener("click", async () => {
+$("updateProfile")?.addEventListener("click", async () => {
   if (!currentUser) return;
 
-  const name = $("editNameInput").value.trim();
+  const name = $("editNameInput")?.value.trim() || "";
 
   if (name.length < 2) {
-    $("profileMessage").textContent =
-      "Enter a valid name.";
+    showError("profileMessage", "Enter a valid name.");
     return;
   }
 
-  $("profileMessage").textContent = "Saving...";
+  const button = $("updateProfile");
+  button.disabled = true;
+  showError("profileMessage", "Saving...");
 
   try {
     await setDoc(doc(db, "users", currentUser.uid), {
-      name: name,
-      email: currentUser.email,
-      photoURL: currentUser.photoURL || "",
+      name,
+      email: currentUser.email || "",
       updatedAt: serverTimestamp()
     }, { merge: true });
 
@@ -266,54 +275,108 @@ $("updateProfile").addEventListener("click", async () => {
     });
 
     currentName = name;
-    $("profileName").textContent = name;
-    $("greeting").textContent = "Welcome, " + name;
-    
-    $("topProfile").textContent =
-      name.charAt(0).toUpperCase();
 
-    $("profileMessage").textContent =
-      "Profile updated successfully!";
+    setText("profileName", name);
+    setText("greeting", "Welcome, " + name);
+    setText("topProfile", name.charAt(0).toUpperCase());
+
+    showError("profileMessage", "Profile updated successfully!");
 
   } catch (error) {
-    $("profileMessage").textContent = error.message;
+    showError("profileMessage", error.message);
+  } finally {
+    button.disabled = false;
   }
 });
 
 // ======================================
-// 9. AGE CALCULATOR
+// 9. ACCURATE AGE CALCULATOR
 // ======================================
 
 function utcDate(year, month, day) {
   return new Date(Date.UTC(year, month, day));
 }
 
+function getTodayUTC() {
+  const now = new Date();
+
+  return utcDate(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
+  );
+}
+
+// Returns the birthday date in a particular year.
+// February 29 becomes February 28 in non-leap years.
+function birthdayInYear(birth, year) {
+  const month = birth.getUTCMonth();
+  const day = birth.getUTCDate();
+
+  if (
+    month === 1 &&
+    day === 29 &&
+    !isLeapYear(year)
+  ) {
+    return utcDate(year, 1, 28);
+  }
+
+  return utcDate(year, month, day);
+}
+
+function isLeapYear(year) {
+  return year % 4 === 0 &&
+    (year % 100 !== 0 || year % 400 === 0);
+}
+
 function calculateAge(birth, today) {
   let years = today.getUTCFullYear() -
-              birth.getUTCFullYear();
+    birth.getUTCFullYear();
 
-  let months = today.getUTCMonth() -
-               birth.getUTCMonth();
+  let anniversary = birthdayInYear(
+    birth,
+    today.getUTCFullYear()
+  );
 
-  let days = today.getUTCDate() -
-             birth.getUTCDate();
+  if (anniversary > today) {
+    years--;
+    anniversary = birthdayInYear(
+      birth,
+      today.getUTCFullYear() - 1
+    );
+  }
 
-  if (days < 0) {
-    months--;
+  let months = 0;
+  let cursor = anniversary;
 
-    const previousMonthDays = utcDate(
-      today.getUTCFullYear(),
-      today.getUTCMonth(),
+  while (months < 11) {
+    const nextMonth = utcDate(
+      cursor.getUTCFullYear(),
+      cursor.getUTCMonth() + 1,
+      1
+    );
+
+    const lastDay = utcDate(
+      nextMonth.getUTCFullYear(),
+      nextMonth.getUTCMonth() + 1,
       0
     ).getUTCDate();
 
-    days += previousMonthDays;
+    const next = utcDate(
+      nextMonth.getUTCFullYear(),
+      nextMonth.getUTCMonth(),
+      Math.min(anniversary.getUTCDate(), lastDay)
+    );
+
+    if (next > today) break;
+
+    cursor = next;
+    months++;
   }
 
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
+  const days = Math.floor(
+    (today - cursor) / 86400000
+  );
 
   return { years, months, days };
 }
@@ -321,19 +384,11 @@ function calculateAge(birth, today) {
 function getBirthdayInfo(birth, today) {
   let year = today.getUTCFullYear();
 
-  let next = utcDate(
-    year,
-    birth.getUTCMonth(),
-    birth.getUTCDate()
-  );
+  let next = birthdayInYear(birth, year);
 
   if (next < today) {
     year++;
-    next = utcDate(
-      year,
-      birth.getUTCMonth(),
-      birth.getUTCDate()
-    );
+    next = birthdayInYear(birth, year);
   }
 
   const diff = Math.round(
@@ -343,110 +398,126 @@ function getBirthdayInfo(birth, today) {
   return { next, diff };
 }
 
-$("calculateBtn").addEventListener("click", () => {
-  const value = $("dob").value;
-  const error = $("calcError");
+function formatNumber(number) {
+  return Number(number).toLocaleString("en-IN");
+}
 
-  error.textContent = "";
+function formatDate(date) {
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC"
+  });
+}
 
-  if (!value) {
-    error.textContent = "Please select your birth date.";
-    return;
-  }
+function updateAgeReport() {
+  if (!selectedBirthDate) return;
 
-  const [y, m, d] = value.split("-").map(Number);
+  const now = new Date();
+  const today = getTodayUTC();
 
-  const birth = utcDate(y, m - 1, d);
-  const today = utcDate(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    new Date().getDate()
-  );
-
-  if (
-    birth.getUTCFullYear() !== y ||
-    birth.getUTCMonth() !== m - 1 ||
-    birth.getUTCDate() !== d ||
-    birth > today
-  ) {
-    error.textContent = "Please enter a valid past date.";
-    return;
-  }
-
-  const age = calculateAge(birth, today);
-
-  const totalDays = Math.round(
-    (today - birth) / 86400000
-  );
-
-  const totalSeconds = totalDays * 86400;
+  const age = calculateAge(selectedBirthDate, today);
   const totalMonths = age.years * 12 + age.months;
 
-  $("years").textContent = age.years;
-  $("ageSub").textContent =
-    `${age.months} months and ${age.days} days`;
+  // Total elapsed time from UTC birth date to current instant.
+  const birthTimestamp = selectedBirthDate.getTime();
+  const elapsedMs = Math.max(0, now.getTime() - birthTimestamp);
 
-  $("totalMonths").textContent =
-    totalMonths.toLocaleString();
+  const totalSeconds = Math.floor(elapsedMs / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const totalDays = Math.floor(totalHours / 24);
+  const totalWeeks = Math.floor(totalDays / 7);
 
-  $("totalWeeks").textContent =
-    Math.floor(totalDays / 7).toLocaleString();
+  setText("years", age.years);
+  setText(
+    "ageSub",
+    `${age.months} months and ${age.days} days`
+  );
 
-  $("totalDays").textContent =
-    totalDays.toLocaleString();
+  setText("totalMonths", formatNumber(totalMonths));
+  setText("totalWeeks", formatNumber(totalWeeks));
+  setText("totalDays", formatNumber(totalDays));
+  setText("totalHours", formatNumber(totalHours));
+  setText("totalMinutes", formatNumber(totalMinutes));
+  setText("totalSeconds", formatNumber(totalSeconds));
 
-  $("totalHours").textContent =
-    (totalDays * 24).toLocaleString();
+  const birthday = getBirthdayInfo(selectedBirthDate, today);
 
-  $("totalMinutes").textContent =
-    (totalDays * 1440).toLocaleString();
-
-  $("totalSeconds").textContent =
-    totalSeconds.toLocaleString();
-
-  const birthday = getBirthdayInfo(birth, today);
-
-  $("birthdayCountdown").textContent =
+  setText(
+    "birthdayCountdown",
     birthday.diff === 0
       ? "Happy Birthday! 🎉"
-      : birthday.diff + " days to go";
+      : `${birthday.diff} days to go`
+  );
 
-  $("birthdayDate").textContent =
-    birthday.next.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC"
-    });
+  setText("birthdayDate", formatDate(birthday.next));
 
-  $("birthDay").textContent =
-    birth.toLocaleDateString("en-US", {
+  setText(
+    "birthDay",
+    selectedBirthDate.toLocaleDateString("en-US", {
       weekday: "long",
       timeZone: "UTC"
-    });
+    })
+  );
 
-  $("birthDateText").textContent =
-    birth.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-      timeZone: "UTC"
-    });
+  setText("birthDateText", formatDate(selectedBirthDate));
+}
 
-  $("results").classList.remove("hidden");
-  $("results").scrollIntoView({
+$("calculateBtn")?.addEventListener("click", () => {
+  const value = $("dob")?.value || "";
+  showError("calcError", "");
+
+  if (!value) {
+    showError("calcError", "Please select your birth date.");
+    return;
+  }
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  const birth = utcDate(year, month - 1, day);
+  const today = getTodayUTC();
+
+  if (
+    birth.getUTCFullYear() !== year ||
+    birth.getUTCMonth() !== month - 1 ||
+    birth.getUTCDate() !== day ||
+    birth > today
+  ) {
+    showError("calcError", "Please enter a valid birth date.");
+    return;
+  }
+
+  selectedBirthDate = birth;
+
+  if (ageTimer) {
+    clearInterval(ageTimer);
+  }
+
+  updateAgeReport();
+
+  // Refresh total time every second.
+  ageTimer = setInterval(updateAgeReport, 1000);
+
+  $("results")?.classList.remove("hidden");
+
+  $("results")?.scrollIntoView({
     behavior: "smooth",
     block: "start"
   });
 });
 
-// Set maximum DOB to today
-const now = new Date();
-$("dob").max = [
-  now.getFullYear(),
-  String(now.getMonth() + 1).padStart(2, "0"),
-  String(now.getDate()).padStart(2, "0")
-].join("-");
+// Maximum birth date = today
+if ($("dob")) {
+  const now = new Date();
+
+  $("dob").max = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, "0"),
+    String(now.getDate()).padStart(2, "0")
+  ].join("-");
+}
 
 // ======================================
 // 10. NAVIGATION
@@ -459,7 +530,7 @@ document.querySelectorAll(".nav-btn[data-page]")
     });
   });
 
-$("topProfile").addEventListener("click", () => {
+$("topProfile")?.addEventListener("click", () => {
   showSection("profile");
 });
 
@@ -469,58 +540,71 @@ $("topProfile").addEventListener("click", () => {
 
 function setTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  localStorage.setItem("ageverse-theme", theme);
 
-  $("themeToggle").textContent =
-    theme === "dark" ? "☀" : "☾";
+  try {
+    localStorage.setItem("ageverse-theme", theme);
+  } catch (error) {
+    console.warn("Theme could not be saved:", error);
+  }
+
+  if ($("themeToggle")) {
+    $("themeToggle").textContent =
+      theme === "dark" ? "☀" : "☾";
+  }
 }
 
-const savedTheme = localStorage.getItem("ageverse-theme") || "light";
+let savedTheme = "light";
+
+try {
+  savedTheme = localStorage.getItem("ageverse-theme") || "light";
+} catch (error) {
+  console.warn(error);
+}
+
 setTheme(savedTheme);
 
-$("themeToggle").addEventListener("click", () => {
+function toggleTheme() {
   setTheme(
     document.documentElement.dataset.theme === "dark"
       ? "light"
       : "dark"
   );
-});
+}
 
-$("sideTheme").addEventListener("click", () => {
-  setTheme(
-    document.documentElement.dataset.theme === "dark"
-      ? "light"
-      : "dark"
-  );
-});
+$("themeToggle")?.addEventListener("click", toggleTheme);
+$("sideTheme")?.addEventListener("click", toggleTheme);
 
 // ======================================
 // 12. LOGOUT
 // ======================================
 
-$("logoutBtn").addEventListener("click", async () => {
+$("logoutBtn")?.addEventListener("click", async () => {
   const confirmed = confirm("Are you sure you want to sign out?");
 
   if (!confirmed) return;
 
   try {
+    if (ageTimer) clearInterval(ageTimer);
     await signOut(auth);
   } catch (error) {
     alert("Logout failed: " + error.message);
   }
 });
-// PROFILE PHOTO - LOCAL STORAGE
 
-const photoInput = document.getElementById("profilePhotoInput");
-const choosePhotoBtn = document.getElementById("choosePhotoBtn");
-const profilePhoto = document.getElementById("profilePhoto");
+// ======================================
+// 13. PROFILE PHOTO - LOCAL STORAGE
+// ======================================
 
-choosePhotoBtn.addEventListener("click", () => {
-  photoInput.click();
+const photoInput = $("profilePhotoInput");
+const choosePhotoBtn = $("choosePhotoBtn");
+const profilePhoto = $("profilePhoto");
+
+choosePhotoBtn?.addEventListener("click", () => {
+  photoInput?.click();
 });
 
-photoInput.addEventListener("change", () => {
-  const file = photoInput.files[0];
+photoInput?.addEventListener("change", () => {
+  const file = photoInput.files?.[0];
 
   if (!file) return;
 
@@ -529,12 +613,17 @@ photoInput.addEventListener("change", () => {
     return;
   }
 
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Please select an image smaller than 5 MB.");
+    return;
+  }
+
   const reader = new FileReader();
 
-  reader.onload = function (event) {
+  reader.onload = event => {
     const img = new Image();
 
-    img.onload = function () {
+    img.onload = () => {
       const canvas = document.createElement("canvas");
       const size = 300;
 
@@ -548,11 +637,19 @@ photoInput.addEventListener("change", () => {
 
       try {
         localStorage.setItem("ageVerseProfilePhoto", imageData);
-        profilePhoto.src = imageData;
+
+        if (profilePhoto) {
+          profilePhoto.src = imageData;
+        }
+
         alert("Profile photo saved!");
       } catch (error) {
         alert("Storage full. Please choose a smaller image.");
       }
+    };
+
+    img.onerror = () => {
+      alert("Unable to open this image.");
     };
 
     img.src = event.target.result;
@@ -562,12 +659,19 @@ photoInput.addEventListener("change", () => {
 });
 
 // Load saved photo
-const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
+try {
+  const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
 
-if (savedPhoto) {
-  profilePhoto.src = savedPhoto;
+  if (savedPhoto && profilePhoto) {
+    profilePhoto.src = savedPhoto;
+  }
+} catch (error) {
+  console.warn("Saved photo could not be loaded:", error);
 }
-/* Ageverse PWA Service Worker Registration */
+
+// ======================================
+// 14. PWA SERVICE WORKER
+// ======================================
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
@@ -580,34 +684,35 @@ if ("serviceWorker" in navigator) {
         );
       })
       .catch(error => {
-        console.error(
-          "Service Worker registration failed:",
-          error
-        );
+        console.error("Service Worker registration failed:", error);
       });
   });
-  }
+}
 
+// ======================================
+// 15. OPTIONAL BIRTHDAY NOTIFICATION
+// ======================================
 
-/* Ageverse Birthday Notification Permission */
+const birthdayNotifyBtn = $("birthdayNotifyBtn");
+const birthdayNotifyStatus = $("birthdayNotifyStatus");
 
-const birthdayNotifyBtn = document.getElementById("birthdayNotifyBtn");
-const birthdayNotifyStatus = document.getElementById("birthdayNotifyStatus");
-
-if (birthdayNotifyBtn) {
-  birthdayNotifyBtn.addEventListener("click", async () => {
-
-    if (!("Notification" in window)) {
+birthdayNotifyBtn?.addEventListener("click", async () => {
+  if (!("Notification" in window)) {
+    if (birthdayNotifyStatus) {
       birthdayNotifyStatus.textContent =
         "Notifications are not supported on this device.";
-      return;
     }
+    return;
+  }
 
+  try {
     const permission = await Notification.requestPermission();
 
     if (permission === "granted") {
-      birthdayNotifyStatus.textContent =
-        "Birthday notification permission enabled! 🎉";
+      if (birthdayNotifyStatus) {
+        birthdayNotifyStatus.textContent =
+          "Birthday notification permission enabled! 🎉";
+      }
 
       const registration = await navigator.serviceWorker.ready;
 
@@ -617,10 +722,17 @@ if (birthdayNotifyBtn) {
         badge: "./icon-192.png"
       });
 
-    } else {
+    } else if (birthdayNotifyStatus) {
       birthdayNotifyStatus.textContent =
-        "Please allow notifications in your app settings.";
+        "Notification permission was not granted.";
     }
-  });
-}
+  } catch (error) {
+    console.error("Notification Error:", error);
+
+    if (birthdayNotifyStatus) {
+      birthdayNotifyStatus.textContent =
+        "Unable to enable notifications.";
+    }
+  }
+});
 
