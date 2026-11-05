@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -38,9 +37,9 @@
   <title>Free Age Calculator 2026 – Calculate Your Exact Age | Ageverse</title>
 </head>
 
-
 <body>
 
+  <!-- LOADER -->
   <div id="loader" class="loader-screen">
     <div class="loader-logo">AV</div>
     <p>AgeVerse</p>
@@ -48,13 +47,18 @@
   </div>
 
   <!-- LOGIN -->
-  <section id="loginPage" class="auth-page hidden" role="main">
+  <section id="loginPage" class="auth-page hidden">
     <div class="auth-decoration"></div>
+
     <div class="auth-card">
       <div class="brand-logo">AV</div>
       <span class="eyebrow">YOUR TIME, YOUR STORY</span>
+
       <h1>Discover your<br><span>age in detail.</span></h1>
-      <p class="muted">A smarter way to explore your age, birthday and life's milestones.</p>
+
+      <p class="muted">
+        A smarter way to explore your age, birthday and life's milestones.
+      </p>
 
       <button id="googleLogin" class="google-btn" type="button">
         <span class="google-icon">G</span>
@@ -62,24 +66,35 @@
       </button>
 
       <p id="loginError" class="error-text" aria-live="polite"></p>
-      <p class="small-note">Secure sign-in powered by Firebase.</p>
+
+      <p class="small-note">
+        Secure sign-in powered by Firebase.
+      </p>
     </div>
   </section>
 
   <!-- NAME SETUP -->
-  <section id="namePage" class="auth-page hidden" role="main">
+  <section id="namePage" class="auth-page hidden">
     <div class="auth-card">
       <div class="brand-logo">AV</div>
       <span class="eyebrow">PERSONALIZE YOUR EXPERIENCE</span>
+
       <h1>Welcome to<br><span>AgeVerse.</span></h1>
+
       <p class="muted">What name should we use for you?</p>
 
       <label for="setupName">Your name</label>
-      <input id="setupName" type="text" maxlength="40" placeholder="Enter your name">
+      <input
+        id="setupName"
+        type="text"
+        maxlength="40"
+        placeholder="Enter your name"
+      >
 
       <button id="saveName" class="primary-btn" type="button">
         Continue <span>→</span>
       </button>
+
       <p id="nameError" class="error-text" aria-live="polite"></p>
     </div>
   </section>
@@ -87,9 +102,12 @@
   <!-- MAIN APP -->
   <div id="appPage" class="app-shell hidden">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar">
+
       <div class="brand">
         <div class="brand-logo">AV</div>
+
         <div>
           <strong>AgeVerse</strong>
           <small>AGE CALCULATOR</small>
@@ -107,37 +125,62 @@
       </button>
 
       <div class="sidebar-bottom">
-        <button id="sideTheme" class="nav-btn" type="button">◐ Appearance</button>
+        <button id="sideTheme" class="nav-btn" type="button">
+          ◐ Appearance
+        </button>
+
         <p>Made to explore your time.</p>
       </div>
+
     </aside>
 
+    <!-- MAIN CONTENT -->
     <main class="main-content">
 
+      <!-- HEADER -->
       <header class="topbar">
+
         <div>
           <p class="eyebrow">PERSONAL DASHBOARD</p>
           <h2 id="greeting">Welcome!</h2>
         </div>
 
         <div class="top-actions">
-          <button id="themeToggle" class="icon-btn" title="Toggle theme" type="button">☀</button>
-          <button id="topProfile" class="avatar-btn" type="button">U</button>
+          <button
+            id="themeToggle"
+            class="icon-btn"
+            title="Toggle theme"
+            type="button"
+          >☀</button>
+
+          <button
+            id="topProfile"
+            class="avatar-btn"
+            type="button"
+          >U</button>
         </div>
+
       </header>
 
       <!-- HOME -->
       <section id="homeSection" class="content-section">
 
+        <!-- HERO -->
         <div class="hero-card">
+
           <div class="hero-content">
             <span class="hero-tag">✦ YOUR LIFE TIMELINE</span>
+
             <h1>Every moment<br>has a <span>meaning.</span></h1>
+
             <p>Discover exactly how long you've been living.</p>
           </div>
+
           <div class="hero-decoration" aria-hidden="true">⏳</div>
+
         </div>
 
+        <!-- CALCULATOR HEADING -->
         <div class="section-heading">
           <div>
             <span class="eyebrow">AGE CALCULATOR</span>
@@ -145,19 +188,32 @@
           </div>
         </div>
 
+        <!-- CALCULATOR -->
         <div class="calculator-card">
-          <label for="dob">Your date of birth</label>
-          <input type="date" id="dob">
-          <div class="input-hint">Select your birth date to discover your age.</div>
 
-          <button id="calculateBtn" class="primary-btn" type="button">
+          <label for="dob">Your date of birth</label>
+
+          <input type="date" id="dob">
+
+          <div class="input-hint">
+            Select your birth date to discover your age.
+          </div>
+
+          <button
+            id="calculateBtn"
+            class="primary-btn"
+            type="button"
+          >
             Calculate my age <span>→</span>
           </button>
 
           <p id="calcError" class="error-text" aria-live="polite"></p>
+
         </div>
 
+        <!-- RESULTS -->
         <section id="results" class="results hidden">
+
           <div class="section-heading">
             <div>
               <span class="eyebrow">YOUR AGE REPORT</span>
@@ -165,79 +221,125 @@
             </div>
           </div>
 
+          <!-- MAIN AGE -->
           <div class="age-main-card">
+
             <span class="eyebrow">YOU ARE</span>
+
             <div class="age-big">
               <strong id="years">0</strong>
               <span>Years Old</span>
             </div>
+
             <p id="ageSub">0 months and 0 days</p>
+
           </div>
 
+          <!-- STATISTICS -->
           <div class="stats-grid">
-            <div class="stat-card"><span>MONTHS</span><strong id="totalMonths">0</strong></div>
-            <div class="stat-card"><span>WEEKS</span><strong id="totalWeeks">0</strong></div>
-            <div class="stat-card"><span>DAYS</span><strong id="totalDays">0</strong></div>
-            <div class="stat-card"><span>HOURS</span><strong id="totalHours">0</strong></div>
-            <div class="stat-card"><span>MINUTES</span><strong id="totalMinutes">0</strong></div>
-            <div class="stat-card"><span>SECONDS</span><strong id="totalSeconds">0</strong></div>
+
+            <div class="stat-card">
+              <span>MONTHS</span>
+              <strong id="totalMonths">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>WEEKS</span>
+              <strong id="totalWeeks">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>DAYS</span>
+              <strong id="totalDays">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>HOURS</span>
+              <strong id="totalHours">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>MINUTES</span>
+              <strong id="totalMinutes">0</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>SECONDS</span>
+              <strong id="totalSeconds">0</strong>
+            </div>
+
           </div>
 
-          
-<!-- PREMIUM BIRTHDAY NOTIFICATION CARD -->
+          <!-- PREMIUM BIRTHDAY NOTIFICATION CARD -->
+          <div class="notification-card">
 
-<div class="notification-card">
+            <div class="notification-icon">🔔</div>
 
-  <div class="notification-icon">🔔</div>
+            <div class="notification-content">
 
-  <div class="notification-content">
-    <span class="notification-label">SPECIAL REMINDER</span>
+              <span class="notification-label">
+                SPECIAL REMINDER
+              </span>
 
-    <h3>Birthday Reminders</h3>
+              <h3>Birthday Reminders</h3>
 
-    <p>
-      Never miss your special day.
-      Enable reminders to stay connected with your birthday.
-    </p>
+              <p>
+                Never miss your special day.
+                Enable reminders to stay connected with your birthday.
+              </p>
 
-    <button id="birthdayNotifyBtn"
-      class="notification-enable-btn"
-      type="button">
-      <span>Enable Notifications</span>
-      <span class="notification-arrow">→</span>
-    </button>
+              <button
+                id="birthdayNotifyBtn"
+                class="notification-enable-btn"
+                type="button"
+              >
+                <span>Enable Notifications</span>
+                <span class="notification-arrow">→</span>
+              </button>
 
-    <p id="birthdayNotifyStatus"
-      class="notification-status"
-      aria-live="polite">
-      Notifications are currently not enabled.
-    </p>
-  </div>
+              <p
+                id="birthdayNotifyStatus"
+                class="notification-status"
+                aria-live="polite"
+              >
+                Notifications are currently not enabled.
+              </p>
 
-</div>
-          <div class="birthday-card">
-  <div class="birthday-icon">🎂</div>
-  <div>
-    <span class="eyebrow">NEXT BIRTHDAY</span>
-    <h3 id="birthdayCountdown">Calculate your age first</h3>
-    <p id="birthdayDate">Your next birthday</p>
-  </div>
+            </div>
           </div>
 
-
+          <!-- NEXT BIRTHDAY -->
           <div class="birthday-card">
+
+            <div class="birthday-icon">🎂</div>
+
+            <div>
+              <span class="eyebrow">NEXT BIRTHDAY</span>
+              <h3 id="birthdayCountdown">Calculate your age first</h3>
+              <p id="birthdayDate">Your next birthday</p>
+            </div>
+
+          </div>
+
+          <!-- BORN ON -->
+          <div class="birthday-card">
+
             <div class="birthday-icon">📅</div>
+
             <div>
               <span class="eyebrow">BORN ON</span>
               <h3 id="birthDay">--</h3>
               <p id="birthDateText">Your birth date</p>
             </div>
+
           </div>
+
         </section>
       </section>
 
       <!-- PROFILE -->
       <section id="profileSection" class="content-section hidden">
+
         <div class="section-heading">
           <div>
             <span class="eyebrow">ACCOUNT SETTINGS</span>
@@ -246,6 +348,7 @@
         </div>
 
         <div class="profile-card">
+
           <img
             id="profilePhoto"
             class="profile-photo"
@@ -255,31 +358,70 @@
             height="120"
           >
 
-          <input type="file" id="profilePhotoInput" accept="image/*" hidden>
+          <input
+            type="file"
+            id="profilePhotoInput"
+            accept="image/*"
+            hidden
+          >
 
-          <button type="button" id="choosePhotoBtn" class="primary-btn">
+          <button
+            type="button"
+            id="choosePhotoBtn"
+            class="primary-btn"
+          >
             Choose Profile Photo
           </button>
 
           <h2 id="profileName">User</h2>
+
           <p id="profileEmail" class="muted"></p>
 
           <div class="profile-field">
             <label for="editNameInput">Your display name</label>
-            <input id="editNameInput" type="text" maxlength="40">
+            <input
+              id="editNameInput"
+              type="text"
+              maxlength="40"
+            >
           </div>
 
-          <button id="updateProfile" class="primary-btn" type="button">Save changes</button>
-          <p id="profileMessage" class="error-text" aria-live="polite"></p>
-          <button id="logoutBtn" class="logout-btn" type="button">Sign out</button>
+          <button
+            id="updateProfile"
+            class="primary-btn"
+            type="button"
+          >
+            Save changes
+          </button>
+
+          <p
+            id="profileMessage"
+            class="error-text"
+            aria-live="polite"
+          ></p>
+
+          <button
+            id="logoutBtn"
+            class="logout-btn"
+            type="button"
+          >
+            Sign out
+          </button>
+
         </div>
       </section>
 
+      <!-- FOOTER -->
       <footer style="text-align:center;padding:25px 15px;margin-top:30px;">
+
         <h2>Ageverse</h2>
+
         <p>Your Smart Age Calculator</p>
 
-        <nav aria-label="Footer navigation" style="display:flex;justify-content:center;flex-wrap:wrap;gap:18px;margin:20px 0;">
+        <nav
+          aria-label="Footer navigation"
+          style="display:flex;justify-content:center;flex-wrap:wrap;gap:18px;margin:20px 0;"
+        >
           <a href="about.html">About Us</a>
           <a href="contact.html">Contact Us</a>
           <a href="privacy.html">Privacy Policy</a>
@@ -287,99 +429,101 @@
         </nav>
 
         <p>© 2026 Ageverse. All Rights Reserved.</p>
+
       </footer>
 
     </main>
   </div>
-   
-<!-- AGEVERSE SEO CONTENT -->
-<section class="seo-content">
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 25px 20px;
-  line-height: 1.8;
-  color: inherit;
-">
 
-  <h2>What Is an Age Calculator?</h2>
-  <p>
-    An age calculator is an online tool that helps you find
-    your exact age using your date of birth. It calculates
-    your age in years, months and days. Ageverse makes it
-    simple to discover how long you have been living.
-  </p>
+  <!-- AGEVERSE SEO CONTENT -->
+  <section class="seo-content">
 
-  <h2>How to Calculate Your Exact Age?</h2>
-  <p>
-    Calculating your age with Ageverse is easy. Select your
-    date of birth using the date picker and click the
-    Calculate My Age button. The calculator will show your
-    age in years, months, days, weeks, hours, minutes and
-    seconds.
-  </p>
+    <h2>What Is an Age Calculator?</h2>
 
-  <h2>How Does an Age Calculator Work?</h2>
-  <p>
-    An age calculator compares your date of birth with
-    the current date. It calculates the difference between
-    these dates by considering calendar years, months and
-    days, including leap years.
-  </p>
-
-  <h2>Why Use Ageverse?</h2>
-  <ul>
-    <li>Calculate your age quickly and easily.</li>
-    <li>Discover your age in years, months and days.</li>
-    <li>Explore your age in weeks, hours and minutes.</li>
-    <li>Find your next birthday countdown.</li>
-    <li>Use a simple and mobile-friendly interface.</li>
-  </ul>
-
-  <h2>Frequently Asked Questions</h2>
-
-  <details>
-    <summary>How can I calculate my exact age online?</summary>
     <p>
-      Enter your date of birth in Ageverse and click
-      Calculate My Age to see your age.
+      An age calculator is an online tool that helps you find
+      your exact age using your date of birth. It calculates
+      your age in years, months and days. Ageverse makes it
+      simple to discover how long you have been living.
     </p>
-  </details>
 
-  <details>
-    <summary>Can I calculate my age in days?</summary>
+    <h2>How to Calculate Your Exact Age?</h2>
+
     <p>
-      Yes. Ageverse provides your total age in days,
-      along with other time measurements.
+      Calculating your age with Ageverse is easy. Select your
+      date of birth using the date picker and click the
+      Calculate My Age button. The calculator will show your
+      age in years, months, days, weeks, hours, minutes and
+      seconds.
     </p>
-  </details>
 
-  <details>
-    <summary>Is Ageverse free to use?</summary>
+    <h2>How Does an Age Calculator Work?</h2>
+
     <p>
-      Yes. You can use the Age Calculator on Ageverse
-      without paying a fee.
+      An age calculator compares your date of birth with
+      the current date. It calculates the difference between
+      these dates by considering calendar years, months and
+      days, including leap years.
     </p>
-  </details>
 
-  <details>
-    <summary>Does an age calculator consider leap years?</summary>
-    <p>
-      A calendar-based age calculator considers leap years
-      when calculating the difference between dates.
-    </p>
-  </details>
+    <h2>Why Use Ageverse?</h2>
 
-  <details>
-    <summary>Can I use Ageverse on my mobile phone?</summary>
-    <p>
-      Yes. Ageverse is designed to work on mobile phones
-      as well as desktop devices.
-    </p>
-  </details>
+    <ul>
+      <li>Calculate your age quickly and easily.</li>
+      <li>Discover your age in years, months and days.</li>
+      <li>Explore your age in weeks, hours and minutes.</li>
+      <li>Find your next birthday countdown.</li>
+      <li>Use a simple and mobile-friendly interface.</li>
+    </ul>
 
-</section>
-<!-- END AGEVERSE SEO CONTENT -->
+    <h2>Frequently Asked Questions</h2>
 
+    <details>
+      <summary>How can I calculate my exact age online?</summary>
+      <p>
+        Enter your date of birth in Ageverse and click
+        Calculate My Age to see your age.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can I calculate my age in days?</summary>
+      <p>
+        Yes. Ageverse provides your total age in days,
+        along with other time measurements.
+      </p>
+    </details>
+
+    <details>
+      <summary>Is Ageverse free to use?</summary>
+      <p>
+        Yes. You can use the Age Calculator on Ageverse
+        without paying a fee.
+      </p>
+    </details>
+
+    <details>
+      <summary>Does an age calculator consider leap years?</summary>
+      <p>
+        A calendar-based age calculator considers leap years
+        when calculating the difference between dates.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can I use Ageverse on my mobile phone?</summary>
+      <p>
+        Yes. Ageverse is designed to work on mobile phones
+        as well as desktop devices.
+      </p>
+    </details>
+
+  </section>
+  <!-- END AGEVERSE SEO CONTENT -->
+
+  <!-- JAVASCRIPT -->
   <script type="module" src="./script.js?v=3"></script>
+
 </body>
 </html>
+
