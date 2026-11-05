@@ -426,10 +426,19 @@ $("updateProfile")?.addEventListener("click", async () => {
       name.charAt(0).toUpperCase()
     );
 
-    showError(
-      "profileMessage",
-      "Profile updated successfully!"
-    );
+    const message = $("profileMessage");
+
+if (message) {
+  message.style.color = "#22c55e";
+  message.textContent = "Profile updated successfully!";
+
+  setTimeout(() => {
+    if (message.textContent === "Profile updated successfully!") {
+      message.textContent = "";
+      message.style.color = "";
+    }
+  }, 3000);
+}
 
   } catch (error) {
     console.error("Profile Update Error:", error);
