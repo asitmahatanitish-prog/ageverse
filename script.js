@@ -343,6 +343,9 @@ async function loadProfile() {
   try {
     const { db, doc, getDoc } = await getFirestoreTools();
 
+    const userRef = doc(db, "users", currentUser.uid);
+    const snap = await getDoc(userRef);
+
     if (snap.exists()) {
       currentName = snap.data().name || currentName;
     }
