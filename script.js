@@ -36,6 +36,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const googleProvider = new GoogleAuthProvider();
+
 googleProvider.setCustomParameters({
   prompt: "select_account"
 });
@@ -53,11 +54,21 @@ let selectedBirthDate = null;
 
 function setText(id, value) {
   const element = $(id);
-  if (element) element.textContent = value;
+  if (element) element.textContent = String(value);
 }
 
 function showError(id, message) {
   setText(id, message);
+}
+
+function setButtonLoading(button, loading, text) {
+  if (!button) return;
+
+  button.disabled = loading;
+
+  if (text) {
+    button.textContent = text;
+  }
 }
 
 // ======================================
@@ -65,17 +76,21 @@ function showError(id, message) {
 // ======================================
 
 function showPage(page) {
-  ["loginPage", "namePage", "appPage"].forEach(id => {
-    $(id)?.classList.add("hidden");
-  });
-
-  const pageIds = {
+  const pages = {
     login: "loginPage",
     name: "namePage",
     app: "appPage"
   };
 
-  $(pageIds[page])?.classList.remove("hidden");
+  Object.values(pages).forEach(id => {
+    $(id)?.classList.add("hidden");
+  });
+
+  const target = pages[page];
+
+  if (target) {
+    $(target)?.classList.remove("hidden");
+  }
 }
 
 function showSection(section) {
@@ -83,21 +98,29 @@ function showSection(section) {
   $("profileSection")?.classList.add("hidden");
 
   document.querySelectorAll(".nav-btn[data-page]")
-    .forEach(btn => btn.classList.remove("active"));
+    .forEach(button => {
+      button.classList.remove("active");
+    });
 
   if (section === "home") {
     $("homeSection")?.classList.remove("hidden");
+
     document.querySelector('[data-page="home"]')
       ?.classList.add("active");
-  } else {
+
+  } else if (section === "profile") {
     $("profileSection")?.classList.remove("hidden");
+
     document.querySelector('[data-page="profile"]')
       ?.classList.add("active");
 
     loadProfile();
   }
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
 // ======================================
@@ -107,11 +130,30 @@ function showSection(section) {
 $("googleLogin")?.addEventListener("click", async () => {
   showError("loginError", "");
 
+  const button = $("googleLogin");
+
+  if (button) button.disabled = true;
+
   try {
     await signInWithPopup(auth, googleProvider);
+
   } catch (error) {
     console.error("Google Login Error:", error);
-    showError("loginError", error.message);
+
+    let message = "Unable to sign in. Please try again.";
+
+    if (error.code === "auth/popup-closed-by-user") {
+      message = "Login window was closed. Please try again.";
+    } else if (error.code === "auth/popup-blocked") {
+      message = "Popup blocked. Please allow popups in your browser.";
+    } else if (error.code === "auth/network-request-failed") {
+      message = "Network error. Please check your internet connection.";
+    }
+
+    showError("loginError", message);
+
+  } finally {
+    if (button) button.disabled = false;
   }
 });
 
@@ -124,8 +166,17 @@ onAuthStateChanged(auth, async user => {
 
   if (!user) {
     currentName = "";
+
+    if (ageTimer) {
+      clearInterval(ageTimer);
+      ageTimer = null;
+    }
+
+    selectedBirthDate = null;
+
     showPage("login");
     $("loader")?.classList.add("hidden");
+
     return;
   }
 
@@ -136,16 +187,25 @@ onAuthStateChanged(auth, async user => {
     if (userSnap.exists() && userSnap.data().name) {
       currentName = userSnap.data().name;
       openDashboard();
+
     } else {
       if ($("setupName")) {
         $("setupName").value = user.displayName || "";
       }
+
       showPage("name");
     }
+
   } catch (error) {
     console.error("Firebase Error:", error);
-    showError("nameError", error.message);
+
+    showError(
+      "nameError",
+      "Unable to load your profile. Please check your internet connection."
+    );
+
     showPage("name");
+
   } finally {
     $("loader")?.classList.add("hidden");
   }
@@ -161,43 +221,76 @@ $("saveName")?.addEventListener("click", async () => {
   const name = $("setupName")?.value.trim() || "";
 
   if (name.length < 2) {
-    showError("nameError", "Please enter at least 2 characters.");
+    showError(
+      "nameError",
+      "Please enter at least 2 characters."
+    );
     return;
   }
 
   showError("nameError", "");
 
   const button = $("saveName");
-  button.disabled = true;
-  button.textContent = "Saving...";
+
+  setButtonLoading(button, true, "Saving...");
 
   try {
-    await setDoc(doc(db, "users", currentUser.uid), {
-      name,
-      email: currentUser.email || "",
-      photoURL: currentUser.photoURL || "",
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "users", currentUser.uid),
+      {
+        name,
+        email: currentUser.email || "",
+        photoURL: currentUser.photoURL || "",
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
 
     await updateProfile(currentUser, {
       displayName: name
     });
 
     currentName = name;
+
     openDashboard();
 
   } catch (error) {
-    console.error(error);
-    showError("nameError", error.message);
+    console.error("Save Name Error:", error);
+
+    showError(
+      "nameError",
+      "Unable to save your name. Please try again."
+    );
+
   } finally {
-    button.disabled = false;
-    button.innerHTML = 'Continue <span>→</span>';
+    setButtonLoading(button, false);
+
+    if (button) {
+      button.innerHTML = 'Continue <span>→</span>';
+    }
   }
 });
 
 // ======================================
 // 7. OPEN DASHBOARD
 // ======================================
+
+function getSavedPhoto() {
+  try {
+    return localStorage.getItem("ageVerseProfilePhoto") || "";
+  } catch (error) {
+    console.warn("Photo storage unavailable:", error);
+    return "";
+  }
+}
+
+function updateProfilePhoto() {
+  const photo = getSavedPhoto() || currentUser?.photoURL || "";
+
+  if (photo && $("profilePhoto")) {
+    $("profilePhoto").src = photo;
+  }
+}
 
 function openDashboard() {
   showPage("app");
@@ -210,20 +303,12 @@ function openDashboard() {
     $("editNameInput").value = currentName;
   }
 
-  setText("topProfile", currentName.charAt(0).toUpperCase());
+  setText(
+    "topProfile",
+    currentName.charAt(0).toUpperCase()
+  );
 
-  let savedPhoto = "";
-
-try {
-  savedPhoto = localStorage.getItem("ageVerseProfilePhoto") || "";
-} catch (error) {
-  console.warn("Photo storage unavailable:", error);
-}
-  const photo = savedPhoto || currentUser?.photoURL;
-
-  if (photo && $("profilePhoto")) {
-    $("profilePhoto").src = photo;
-  }
+  updateProfilePhoto();
 
   showSection("home");
 }
@@ -236,7 +321,9 @@ async function loadProfile() {
   if (!currentUser) return;
 
   try {
-    const snap = await getDoc(doc(db, "users", currentUser.uid));
+    const snap = await getDoc(
+      doc(db, "users", currentUser.uid)
+    );
 
     if (snap.exists()) {
       currentName = snap.data().name || currentName;
@@ -246,14 +333,28 @@ async function loadProfile() {
     setText("profileEmail", currentUser.email || "");
     setText("greeting", "Welcome, " + currentName);
 
+    setText(
+      "topProfile",
+      currentName.charAt(0).toUpperCase()
+    );
+
     if ($("editNameInput")) {
       $("editNameInput").value = currentName;
     }
 
+    updateProfilePhoto();
+
   } catch (error) {
-    showError("profileMessage", error.message);
+    console.error("Profile Load Error:", error);
+
+    showError(
+      "profileMessage",
+      "Unable to load profile information."
+    );
   }
 }
+
+// UPDATE PROFILE
 
 $("updateProfile")?.addEventListener("click", async () => {
   if (!currentUser) return;
@@ -266,15 +367,21 @@ $("updateProfile")?.addEventListener("click", async () => {
   }
 
   const button = $("updateProfile");
-  button.disabled = true;
+
+  setButtonLoading(button, true);
+
   showError("profileMessage", "Saving...");
 
   try {
-    await setDoc(doc(db, "users", currentUser.uid), {
-      name,
-      email: currentUser.email || "",
-      updatedAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      doc(db, "users", currentUser.uid),
+      {
+        name,
+        email: currentUser.email || "",
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
 
     await updateProfile(currentUser, {
       displayName: name
@@ -284,14 +391,27 @@ $("updateProfile")?.addEventListener("click", async () => {
 
     setText("profileName", name);
     setText("greeting", "Welcome, " + name);
-    setText("topProfile", name.charAt(0).toUpperCase());
 
-    showError("profileMessage", "Profile updated successfully!");
+    setText(
+      "topProfile",
+      name.charAt(0).toUpperCase()
+    );
+
+    showError(
+      "profileMessage",
+      "Profile updated successfully!"
+    );
 
   } catch (error) {
-    showError("profileMessage", error.message);
+    console.error("Profile Update Error:", error);
+
+    showError(
+      "profileMessage",
+      "Unable to update profile. Please try again."
+    );
+
   } finally {
-    button.disabled = false;
+    setButtonLoading(button, false);
   }
 });
 
@@ -299,10 +419,12 @@ $("updateProfile")?.addEventListener("click", async () => {
 // 9. ACCURATE AGE CALCULATOR
 // ======================================
 
+// Create a UTC date without timezone shifting.
 function utcDate(year, month, day) {
   return new Date(Date.UTC(year, month, day));
 }
 
+// Today's local calendar date represented in UTC.
 function getTodayUTC() {
   const now = new Date();
 
@@ -313,7 +435,15 @@ function getTodayUTC() {
   );
 }
 
-// Returns the birthday date in a particular year.
+// Leap year check.
+function isLeapYear(year) {
+  return (
+    year % 4 === 0 &&
+    (year % 100 !== 0 || year % 400 === 0)
+  );
+}
+
+// Birthday in a particular year.
 // February 29 becomes February 28 in non-leap years.
 function birthdayInYear(birth, year) {
   const month = birth.getUTCMonth();
@@ -330,14 +460,10 @@ function birthdayInYear(birth, year) {
   return utcDate(year, month, day);
 }
 
-function isLeapYear(year) {
-  return year % 4 === 0 &&
-    (year % 100 !== 0 || year % 400 === 0);
-}
-
+// Calculate exact completed years, months and days.
 function calculateAge(birth, today) {
-  let years = today.getUTCFullYear() -
-    birth.getUTCFullYear();
+  let years =
+    today.getUTCFullYear() - birth.getUTCFullYear();
 
   let anniversary = birthdayInYear(
     birth,
@@ -346,6 +472,7 @@ function calculateAge(birth, today) {
 
   if (anniversary > today) {
     years--;
+
     anniversary = birthdayInYear(
       birth,
       today.getUTCFullYear() - 1
@@ -381,12 +508,17 @@ function calculateAge(birth, today) {
   }
 
   const days = Math.floor(
-    (today - cursor) / 86400000
+    (today.getTime() - cursor.getTime()) / 86400000
   );
 
-  return { years, months, days };
+  return {
+    years,
+    months,
+    days
+  };
 }
 
+// Next birthday information.
 function getBirthdayInfo(birth, today) {
   let year = today.getUTCFullYear();
 
@@ -398,16 +530,21 @@ function getBirthdayInfo(birth, today) {
   }
 
   const diff = Math.round(
-    (next - today) / 86400000
+    (next.getTime() - today.getTime()) / 86400000
   );
 
-  return { next, diff };
+  return {
+    next,
+    diff
+  };
 }
 
+// Number formatting.
 function formatNumber(number) {
   return Number(number).toLocaleString("en-IN");
 }
 
+// Date formatting.
 function formatDate(date) {
   return date.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -417,18 +554,33 @@ function formatDate(date) {
   });
 }
 
+// Calculate elapsed time from local midnight on DOB.
+function getBirthTimestamp(birth) {
+  return new Date(
+    birth.getUTCFullYear(),
+    birth.getUTCMonth(),
+    birth.getUTCDate()
+  ).getTime();
+}
+
+// Update all age results.
 function updateAgeReport() {
   if (!selectedBirthDate) return;
 
-  const now = new Date();
   const today = getTodayUTC();
 
-  const age = calculateAge(selectedBirthDate, today);
-  const totalMonths = age.years * 12 + age.months;
+  const age = calculateAge(
+    selectedBirthDate,
+    today
+  );
 
-  // Total elapsed time from UTC birth date to current instant.
-  const birthTimestamp = selectedBirthDate.getTime();
-  const elapsedMs = Math.max(0, now.getTime() - birthTimestamp);
+  const totalMonths =
+    age.years * 12 + age.months;
+
+  const elapsedMs = Math.max(
+    0,
+    Date.now() - getBirthTimestamp(selectedBirthDate)
+  );
 
   const totalSeconds = Math.floor(elapsedMs / 1000);
   const totalMinutes = Math.floor(totalSeconds / 60);
@@ -437,6 +589,7 @@ function updateAgeReport() {
   const totalWeeks = Math.floor(totalDays / 7);
 
   setText("years", age.years);
+
   setText(
     "ageSub",
     `${age.months} months and ${age.days} days`
@@ -449,7 +602,10 @@ function updateAgeReport() {
   setText("totalMinutes", formatNumber(totalMinutes));
   setText("totalSeconds", formatNumber(totalSeconds));
 
-  const birthday = getBirthdayInfo(selectedBirthDate, today);
+  const birthday = getBirthdayInfo(
+    selectedBirthDate,
+    today
+  );
 
   setText(
     "birthdayCountdown",
@@ -458,7 +614,10 @@ function updateAgeReport() {
       : `${birthday.diff} days to go`
   );
 
-  setText("birthdayDate", formatDate(birthday.next));
+  setText(
+    "birthdayDate",
+    formatDate(birthday.next)
+  );
 
   setText(
     "birthDay",
@@ -468,30 +627,59 @@ function updateAgeReport() {
     })
   );
 
-  setText("birthDateText", formatDate(selectedBirthDate));
+  setText(
+    "birthDateText",
+    formatDate(selectedBirthDate)
+  );
 }
+
+// CALCULATE BUTTON
 
 $("calculateBtn")?.addEventListener("click", () => {
   const value = $("dob")?.value || "";
+
   showError("calcError", "");
 
   if (!value) {
-    showError("calcError", "Please select your birth date.");
+    showError(
+      "calcError",
+      "Please select your birth date."
+    );
     return;
   }
 
-  const [year, month, day] = value.split("-").map(Number);
+  const parts = value.split("-");
+
+  if (parts.length !== 3) {
+    showError("calcError", "Invalid birth date.");
+    return;
+  }
+
+  const [year, month, day] = parts.map(Number);
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    showError("calcError", "Invalid birth date.");
+    return;
+  }
 
   const birth = utcDate(year, month - 1, day);
   const today = getTodayUTC();
 
+  // Validate date and prevent future DOB.
   if (
     birth.getUTCFullYear() !== year ||
     birth.getUTCMonth() !== month - 1 ||
     birth.getUTCDate() !== day ||
     birth > today
   ) {
-    showError("calcError", "Please enter a valid birth date.");
+    showError(
+      "calcError",
+      "Please enter a valid birth date."
+    );
     return;
   }
 
@@ -503,8 +691,10 @@ $("calculateBtn")?.addEventListener("click", () => {
 
   updateAgeReport();
 
-  // Refresh total time every second.
-  ageTimer = setInterval(updateAgeReport, 1000);
+  ageTimer = setInterval(
+    updateAgeReport,
+    1000
+  );
 
   $("results")?.classList.remove("hidden");
 
@@ -514,7 +704,7 @@ $("calculateBtn")?.addEventListener("click", () => {
   });
 });
 
-// Maximum birth date = today
+// Maximum birth date = today.
 if ($("dob")) {
   const now = new Date();
 
@@ -545,60 +735,87 @@ $("topProfile")?.addEventListener("click", () => {
 // ======================================
 
 function setTheme(theme) {
-  document.documentElement.dataset.theme = theme;
+  const selectedTheme =
+    theme === "dark" ? "dark" : "light";
+
+  document.documentElement.dataset.theme =
+    selectedTheme;
 
   try {
-    localStorage.setItem("ageverse-theme", theme);
+    localStorage.setItem(
+      "ageverse-theme",
+      selectedTheme
+    );
   } catch (error) {
     console.warn("Theme could not be saved:", error);
   }
 
   if ($("themeToggle")) {
     $("themeToggle").textContent =
-      theme === "dark" ? "☀" : "☾";
+      selectedTheme === "dark" ? "☀" : "☾";
   }
 }
 
 let savedTheme = "light";
 
 try {
-  savedTheme = localStorage.getItem("ageverse-theme") || "light";
+  savedTheme =
+    localStorage.getItem("ageverse-theme") || "light";
 } catch (error) {
-  console.warn(error);
+  console.warn("Theme storage unavailable:", error);
 }
 
 setTheme(savedTheme);
 
 function toggleTheme() {
+  const currentTheme =
+    document.documentElement.dataset.theme;
+
   setTheme(
-    document.documentElement.dataset.theme === "dark"
-      ? "light"
-      : "dark"
+    currentTheme === "dark" ? "light" : "dark"
   );
 }
 
-$("themeToggle")?.addEventListener("click", toggleTheme);
-$("sideTheme")?.addEventListener("click", toggleTheme);
+$("themeToggle")?.addEventListener(
+  "click",
+  toggleTheme
+);
+
+$("sideTheme")?.addEventListener(
+  "click",
+  toggleTheme
+);
 
 // ======================================
 // 12. LOGOUT
 // ======================================
 
 $("logoutBtn")?.addEventListener("click", async () => {
-  const confirmed = confirm("Are you sure you want to sign out?");
+  const confirmed = confirm(
+    "Are you sure you want to sign out?"
+  );
 
   if (!confirmed) return;
 
   try {
-    if (ageTimer) clearInterval(ageTimer);
+    if (ageTimer) {
+      clearInterval(ageTimer);
+      ageTimer = null;
+    }
+
     await signOut(auth);
+
   } catch (error) {
-    alert("Logout failed: " + error.message);
+    console.error("Logout Error:", error);
+
+    alert(
+      "Logout failed. Please try again."
+    );
   }
 });
 
 // ======================================
-// 13. PROFILE PHOTO - LOCAL STORAGE
+// 13. PROFILE PHOTO
 // ======================================
 
 const photoInput = $("profilePhotoInput");
@@ -615,12 +832,14 @@ photoInput?.addEventListener("change", () => {
   if (!file) return;
 
   if (!file.type.startsWith("image/")) {
-    alert("Please select an image.");
+    alert("Please select a valid image.");
+    photoInput.value = "";
     return;
   }
 
   if (file.size > 5 * 1024 * 1024) {
     alert("Please select an image smaller than 5 MB.");
+    photoInput.value = "";
     return;
   }
 
@@ -637,20 +856,56 @@ photoInput?.addEventListener("change", () => {
       canvas.height = size;
 
       const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, size, size);
 
-      const imageData = canvas.toDataURL("image/jpeg", 0.75);
+      if (!ctx) {
+        alert("Unable to process this image.");
+        return;
+      }
+
+      // Center crop to square without stretching.
+      const cropSize = Math.min(
+        img.width,
+        img.height
+      );
+
+      const cropX = (img.width - cropSize) / 2;
+      const cropY = (img.height - cropSize) / 2;
+
+      ctx.drawImage(
+        img,
+        cropX,
+        cropY,
+        cropSize,
+        cropSize,
+        0,
+        0,
+        size,
+        size
+      );
+
+      const imageData = canvas.toDataURL(
+        "image/jpeg",
+        0.75
+      );
 
       try {
-        localStorage.setItem("ageVerseProfilePhoto", imageData);
+        localStorage.setItem(
+          "ageVerseProfilePhoto",
+          imageData
+        );
 
         if (profilePhoto) {
           profilePhoto.src = imageData;
         }
 
         alert("Profile photo saved!");
+
       } catch (error) {
-        alert("Storage full. Please choose a smaller image.");
+        console.error("Photo Storage Error:", error);
+
+        alert(
+          "Storage full. Please choose a smaller image."
+        );
       }
     };
 
@@ -661,19 +916,15 @@ photoInput?.addEventListener("change", () => {
     img.src = event.target.result;
   };
 
+  reader.onerror = () => {
+    alert("Unable to read this image.");
+  };
+
   reader.readAsDataURL(file);
 });
 
-// Load saved photo
-try {
-  const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
-
-  if (savedPhoto && profilePhoto) {
-    profilePhoto.src = savedPhoto;
-  }
-} catch (error) {
-  console.warn("Saved photo could not be loaded:", error);
-}
+// Load saved profile photo.
+updateProfilePhoto();
 
 // ======================================
 // 14. PWA SERVICE WORKER
@@ -690,11 +941,13 @@ if ("serviceWorker" in navigator) {
         );
       })
       .catch(error => {
-        console.error("Service Worker registration failed:", error);
+        console.error(
+          "Service Worker registration failed:",
+          error
+        );
       });
   });
 }
-
 
 // ======================================
 // 15. BIRTHDAY NOTIFICATION SETTINGS
@@ -704,54 +957,67 @@ const birthdayNotifyBtn = $("birthdayNotifyBtn");
 const birthdayNotifyStatus = $("birthdayNotifyStatus");
 
 birthdayNotifyBtn?.addEventListener("click", async () => {
-
   if (!("Notification" in window)) {
-    birthdayNotifyStatus.textContent =
-      "Your browser does not support notifications.";
+    setText(
+      "birthdayNotifyStatus",
+      "Your browser does not support notifications."
+    );
     return;
   }
 
-  // Permission already blocked
   if (Notification.permission === "denied") {
-    birthdayNotifyStatus.textContent =
-      "Notifications are blocked. Please open Chrome Settings > Site settings > Notifications and allow notifications for Ageverse.";
+    setText(
+      "birthdayNotifyStatus",
+      "Notifications are blocked. Please allow them in your browser site settings."
+    );
     return;
   }
 
   try {
     let permission = Notification.permission;
 
-    // Ask permission only after user clicks
+    // Ask only after the user clicks the button.
     if (permission === "default") {
       permission = await Notification.requestPermission();
     }
 
-    if (permission === "granted") {
-
-      birthdayNotifyStatus.textContent =
-        "Notifications enabled successfully! 🎉";
-
-      const registration = await navigator.serviceWorker.ready;
-
-      await registration.showNotification("Ageverse", {
-        body: "Birthday notifications are enabled!",
-        icon: "./icon-192.png",
-        badge: "./icon-192.png"
-      });
-
-    } else if (permission === "denied") {
-
-      birthdayNotifyStatus.textContent =
-        "Please go to Chrome Settings > Site settings > Notifications and enable notifications for Ageverse.";
-
+    if (permission !== "granted") {
+      setText(
+        "birthdayNotifyStatus",
+        "Notification permission was not granted."
+      );
+      return;
     }
+
+    if (!("serviceWorker" in navigator)) {
+      setText(
+        "birthdayNotifyStatus",
+        "Service Worker is not supported."
+      );
+      return;
+    }
+
+    const registration =
+      await navigator.serviceWorker.ready;
+
+    await registration.showNotification("Ageverse", {
+      body: "Birthday notification test is working! 🎉",
+      icon: "./icon-192.png",
+      badge: "./icon-192.png"
+    });
+
+    setText(
+      "birthdayNotifyStatus",
+      "Notification test successful! 🎉"
+    );
 
   } catch (error) {
     console.error("Notification Error:", error);
 
-    birthdayNotifyStatus.textContent =
-      "Unable to enable notifications. Please check your browser settings.";
+    setText(
+      "birthdayNotifyStatus",
+      "Unable to show notification. Please check browser settings."
+    );
   }
 });
-
 
