@@ -1051,3 +1051,33 @@ footer nav a:hover {
     font-size: 19px;
   }
 }
+
+/* ACCESSIBILITY IMPROVEMENTS */
+
+/* Light theme */
+.auth-card .eyebrow {
+  color: #5142a5;
+}
+
+.auth-card .muted,
+.auth-card .small-note {
+  color: #4b5563;
+}
+
+.auth-card h1 span {
+  color: #5142c8;
+}
+
+/* Dark theme */
+[data-theme="dark"] .auth-card .eyebrow {
+  color: #c4b5fd;
+}
+
+[data-theme="dark"] .auth-card .muted,
+[data-theme="dark"] .auth-card .small-note {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .auth-card h1 span {
+  color: #c4b5fd;
+}
