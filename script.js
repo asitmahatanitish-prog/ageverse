@@ -391,19 +391,23 @@ $("updateProfile")?.addEventListener("click", async () => {
   showError("profileMessage", "Saving...");
 
   try {
-    const {
-  db,
-  doc,
-  setDoc,
-  serverTimestamp
-} = await getFirestoreTools();
-      {
-        name,
-        email: currentUser.email || "",
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
+  const {
+    db,
+    doc,
+    setDoc,
+    serverTimestamp
+  } = await getFirestoreTools();
+
+  await setDoc(
+    doc(db, "users", currentUser.uid),
+    {
+      name,
+      email: currentUser.email || "",
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+
 
     await updateProfile(currentUser, {
       displayName: name
