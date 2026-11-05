@@ -1104,3 +1104,8 @@ footer nav a:hover {
 .seo-content details {
   margin: 12px 0;
 }
+/* Reserve page space to reduce layout shifts */
+.page-root {
+  min-height: 100vh;
+  min-height: 100svh;
+}
