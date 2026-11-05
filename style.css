@@ -1083,13 +1083,12 @@ footer nav a:hover {
   color: #c4b5fd;
 }
 
-/* SEO CONTENT LAYOUT STABILITY */
+/* SEO CONTENT */
 .seo-content {
   width: 100%;
   max-width: 900px;
   margin: 40px auto;
   padding: 25px 20px;
-  contain: layout;
 }
 
 .seo-content h2 {
