@@ -212,7 +212,13 @@ function openDashboard() {
 
   setText("topProfile", currentName.charAt(0).toUpperCase());
 
-  const savedPhoto = localStorage.getItem("ageVerseProfilePhoto");
+  let savedPhoto = "";
+
+try {
+  savedPhoto = localStorage.getItem("ageVerseProfilePhoto") || "";
+} catch (error) {
+  console.warn("Photo storage unavailable:", error);
+}
   const photo = savedPhoto || currentUser?.photoURL;
 
   if (photo && $("profilePhoto")) {
