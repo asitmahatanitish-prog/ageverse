@@ -9,13 +9,6 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-auth.js";
 
-import {
-  getFirestore,
-  doc,
-  getDoc,
-  setDoc,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js";
 
 // ======================================
 // 1. FIREBASE CONFIGURATION
@@ -33,9 +26,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
 
 const googleProvider = new GoogleAuthProvider();
+
+// Firestore will load only when needed
+let firestorePromise = null;
+
+function getFirestoreTools() {
+  if (!firestorePromise) {
+    firestorePromise = import(
+      "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js"
+    ).then(module => ({
+      db: module.getFirestore(app),
+      doc: module.doc,
+      getDoc: module.getDoc,
+      setDoc: module.setDoc,
+      serverTimestamp: module.serverTimestamp
+    }));
+  }
+
+  return firestorePromise;
+}
 
 googleProvider.setCustomParameters({
   prompt: "select_account"
@@ -181,8 +192,10 @@ onAuthStateChanged(auth, async user => {
   }
 
   try {
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
+    const { db, doc, getDoc } = await getFirestoreTools();
+
+const userRef = doc(db, "users", user.uid);
+const userSnap = await getDoc(userRef);
 
     if (userSnap.exists() && userSnap.data().name) {
       currentName = userSnap.data().name;
@@ -235,8 +248,15 @@ $("saveName")?.addEventListener("click", async () => {
   setButtonLoading(button, true, "Saving...");
 
   try {
-    await setDoc(
-      doc(db, "users", currentUser.uid),
+  const {
+    db,
+    doc,
+    setDoc,
+    serverTimestamp
+  } = await getFirestoreTools();
+
+  await setDoc(
+    doc(db, "users", currentUser.uid),
       {
         name,
         email: currentUser.email || "",
@@ -321,9 +341,7 @@ async function loadProfile() {
   if (!currentUser) return;
 
   try {
-    const snap = await getDoc(
-      doc(db, "users", currentUser.uid)
-    );
+    const { db, doc, getDoc } = await getFirestoreTools();
 
     if (snap.exists()) {
       currentName = snap.data().name || currentName;
@@ -373,8 +391,12 @@ $("updateProfile")?.addEventListener("click", async () => {
   showError("profileMessage", "Saving...");
 
   try {
-    await setDoc(
-      doc(db, "users", currentUser.uid),
+    const {
+  db,
+  doc,
+  setDoc,
+  serverTimestamp
+} = await getFirestoreTools();
       {
         name,
         email: currentUser.email || "",
