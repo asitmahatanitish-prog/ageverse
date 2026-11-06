@@ -391,7 +391,11 @@ $("updateProfile")?.addEventListener("click", async () => {
 
   setButtonLoading(button, true);
 
-  showError("profileMessage", "Saving...");
+  const message = $("profileMessage");
+if (message) {
+  message.style.color = "#ffffff";
+  message.textContent = "Saving...";
+}
 
   try {
   const {
