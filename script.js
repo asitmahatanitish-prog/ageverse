@@ -767,17 +767,18 @@ function runAgeCalculation(birth) {
 function processPendingBirthDate() {
   if (!currentUser || !pendingBirthDateValue) return;
 
-  const parts = pendingBirthDateValue.split("-").map(Number);
+  const birth = getValidBirthDate(pendingBirthDateValue);
 
-  const [year, month, day] = parts;
-
-  const birth = utcDate(year, month - 1, day);
+  if (!birth) {
+    pendingBirthDateValue = "";
+    showError("calcError", "Please select a valid birth date again.");
+    return;
+  }
 
   pendingBirthDateValue = "";
 
   runAgeCalculation(birth);
 }
-
 // Validate DOB
 function getValidBirthDate(value) {
   if (!value) return null;
