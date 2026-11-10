@@ -1111,7 +1111,8 @@ footer nav a:hover {
 }
 
 
-/* PREMIUM FAQ - OPTIMIZED THEME */
+
+/* PREMIUM FAQ - ACCESSIBILITY OPTIMIZED */
 
 .faq-section {
   margin-top: 35px;
@@ -1126,19 +1127,30 @@ footer nav a:hover {
   transition: background .2s ease, border-color .2s ease;
 }
 
+/* FAQ Question */
 .faq-item summary {
-  color: var(--primary);
+  color: #3546bd;
   font-size: 16px;
   font-weight: 700;
   line-height: 1.7;
   cursor: pointer;
 }
 
+/* FAQ Answer */
 .faq-item p {
   color: var(--text);
   font-size: 15px;
   line-height: 1.9;
   margin: 14px 0 0;
+}
+
+/* Dark Theme */
+[data-theme="dark"] .faq-item summary {
+  color: #bfccff;
+}
+
+[data-theme="dark"] .faq-item p {
+  color: #f0f3ff;
 }
 
 .faq-item:hover {
@@ -1150,5 +1162,6 @@ footer nav a:hover {
   outline-offset: 5px;
   border-radius: 4px;
 }
+
 
 
