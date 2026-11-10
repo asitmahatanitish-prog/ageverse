@@ -394,6 +394,9 @@ function openDashboard() {
 // ======================================
 // 8. PROFILE
 // ======================================
+if (section === "profile" && !currentUser) {
+  return;
+}
 
 async function loadProfile() {
   if (!currentUser) return;
@@ -866,7 +869,9 @@ document.querySelectorAll(".nav-btn[data-page]")
   });
 
 $("topProfile")?.addEventListener("click", () => {
-  showSection("profile");
+  if (currentUser) {
+    showSection("profile");
+  }
 });
 
 // ======================================
