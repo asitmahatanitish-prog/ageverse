@@ -107,6 +107,9 @@ function showPage(page) {
 }
 
 function showSection(section) {
+  if (section === "profile" && !currentUser) {
+  return;
+  }
   $("homeSection")?.classList.add("hidden");
   $("profileSection")?.classList.add("hidden");
 
@@ -394,9 +397,7 @@ function openDashboard() {
 // ======================================
 // 8. PROFILE
 // ======================================
-if (section === "profile" && !currentUser) {
-  return;
-}
+
 
 async function loadProfile() {
   if (!currentUser) return;
