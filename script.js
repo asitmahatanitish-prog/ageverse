@@ -62,6 +62,8 @@ let currentUser = null;
 let currentName = "";
 let ageTimer = null;
 let selectedBirthDate = null;
+let pendingBirthDateValue = "";
+let isGoogleLoginInProgress = false;
 
 function setText(id, value) {
   const element = $(id);
@@ -134,16 +136,27 @@ function showSection(section) {
   });
 }
 
+
 // ======================================
 // 4. GOOGLE LOGIN
 // ======================================
 
-$("googleLogin")?.addEventListener("click", async () => {
+async function startGoogleLogin() {
+  if (currentUser || isGoogleLoginInProgress) return;
+
+  isGoogleLoginInProgress = true;
+
+  const buttons = [
+    $("googleLogin"),
+    $("topGoogleLogin")
+  ];
+
+  buttons.forEach(button => {
+    if (button) button.disabled = true;
+  });
+
   showError("loginError", "");
-
-  const button = $("googleLogin");
-
-  if (button) button.disabled = true;
+  showError("calcError", "");
 
   try {
     await signInWithPopup(auth, googleProvider);
@@ -162,11 +175,22 @@ $("googleLogin")?.addEventListener("click", async () => {
     }
 
     showError("loginError", message);
+    showError("calcError", message);
 
   } finally {
-    if (button) button.disabled = false;
+    isGoogleLoginInProgress = false;
+
+    buttons.forEach(button => {
+      if (button) button.disabled = false;
+    });
   }
-});
+}
+
+$("googleLogin")?.addEventListener("click", startGoogleLogin);
+
+$("topGoogleLogin")?.addEventListener("click", startGoogleLogin);
+
+
 
 // ======================================
 // 5. AUTHENTICATION STATE
@@ -174,6 +198,10 @@ $("googleLogin")?.addEventListener("click", async () => {
 
 onAuthStateChanged(auth, async user => {
   currentUser = user;
+
+  const profileNav = document.querySelector(
+    '.nav-btn[data-page="profile"]'
+  );
 
   if (!user) {
     currentName = "";
@@ -185,17 +213,36 @@ onAuthStateChanged(auth, async user => {
 
     selectedBirthDate = null;
 
-    showPage("login");
+    $("results")?.classList.add("hidden");
+
+    // Show public Home Page
+    showPage("app");
+    showSection("home");
+
+    setText("greeting", "Welcome to Ageverse");
+
+    // Show Google Login button
+    $("topGoogleLogin")?.classList.remove("hidden");
+
+    // Hide Profile options
+    $("topProfile")?.classList.add("hidden");
+    profileNav?.classList.add("hidden");
+
     $("loader")?.classList.add("hidden");
 
     return;
   }
 
+  // Logged-in user
+  $("topGoogleLogin")?.classList.add("hidden");
+  $("topProfile")?.classList.remove("hidden");
+  profileNav?.classList.remove("hidden");
+
   try {
     const { db, doc, getDoc } = await getFirestoreTools();
 
-const userRef = doc(db, "users", user.uid);
-const userSnap = await getDoc(userRef);
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
 
     if (userSnap.exists() && userSnap.data().name) {
       currentName = userSnap.data().name;
