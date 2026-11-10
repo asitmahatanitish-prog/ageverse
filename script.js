@@ -338,7 +338,8 @@ $("saveName")?.addEventListener("click", async () => {
   }
 });
 
-// ======================================
+
+// ==================================
 // 7. OPEN DASHBOARD
 // ======================================
 
@@ -362,6 +363,13 @@ function updateProfilePhoto() {
 function openDashboard() {
   showPage("app");
 
+  $("topGoogleLogin")?.classList.add("hidden");
+  $("topProfile")?.classList.remove("hidden");
+
+  document.querySelector(
+    '.nav-btn[data-page="profile"]'
+  )?.classList.remove("hidden");
+
   setText("greeting", "Welcome, " + currentName);
   setText("profileName", currentName);
   setText("profileEmail", currentUser?.email || "");
@@ -378,6 +386,9 @@ function openDashboard() {
   updateProfilePhoto();
 
   showSection("home");
+
+  // Calculate previously selected DOB after login
+  processPendingBirthDate();
 }
 
 // ======================================
