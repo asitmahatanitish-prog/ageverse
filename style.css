@@ -1109,3 +1109,43 @@ footer nav a:hover {
   min-height: 100vh;
   min-height: 100svh;
 }
+
+/* FAQ Section Styling */
+.faq-section {
+  margin-top: 35px;
+}
+
+.faq-item {
+  margin: 14px 0;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.faq-item summary {
+  color: #93c5fd;
+  font-weight: 600;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.faq-item p {
+  color: #cbd5e1;
+  line-height: 1.8;
+  margin: 14px 0 0;
+}
+
+/* Light Theme */
+body.light-theme .faq-item {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+body.light-theme .faq-item summary {
+  color: #1d4ed8;
+}
+
+body.light-theme .faq-item p {
+  color: #475569;
+}
