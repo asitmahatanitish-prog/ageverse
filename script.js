@@ -733,56 +733,11 @@ function updateAgeReport() {
   );
 }
 
-// CALCULATE BUTTON
+// ======================================
+// CALCULATE AGE
+// ======================================
 
-$("calculateBtn")?.addEventListener("click", () => {
-  const value = $("dob")?.value || "";
-
-  showError("calcError", "");
-
-  if (!value) {
-    showError(
-      "calcError",
-      "Please select your birth date."
-    );
-    return;
-  }
-
-  const parts = value.split("-");
-
-  if (parts.length !== 3) {
-    showError("calcError", "Invalid birth date.");
-    return;
-  }
-
-  const [year, month, day] = parts.map(Number);
-
-  if (
-    !Number.isInteger(year) ||
-    !Number.isInteger(month) ||
-    !Number.isInteger(day)
-  ) {
-    showError("calcError", "Invalid birth date.");
-    return;
-  }
-
-  const birth = utcDate(year, month - 1, day);
-  const today = getTodayUTC();
-
-  // Validate date and prevent future DOB.
-  if (
-    birth.getUTCFullYear() !== year ||
-    birth.getUTCMonth() !== month - 1 ||
-    birth.getUTCDate() !== day ||
-    birth > today
-  ) {
-    showError(
-      "calcError",
-      "Please enter a valid birth date."
-    );
-    return;
-  }
-
+function runAgeCalculation(birth) {
   selectedBirthDate = birth;
 
   if (ageTimer) {
@@ -802,6 +757,90 @@ $("calculateBtn")?.addEventListener("click", () => {
     behavior: "smooth",
     block: "start"
   });
+}
+
+// Process DOB saved before Google Login
+function processPendingBirthDate() {
+  if (!currentUser || !pendingBirthDateValue) return;
+
+  const parts = pendingBirthDateValue.split("-").map(Number);
+
+  const [year, month, day] = parts;
+
+  const birth = utcDate(year, month - 1, day);
+
+  pendingBirthDateValue = "";
+
+  runAgeCalculation(birth);
+}
+
+// Validate DOB
+function getValidBirthDate(value) {
+  if (!value) return null;
+
+  const parts = value.split("-");
+
+  if (parts.length !== 3) return null;
+
+  const [year, month, day] = parts.map(Number);
+
+  if (
+    !Number.isInteger(year) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(day)
+  ) {
+    return null;
+  }
+
+  const birth = utcDate(year, month - 1, day);
+  const today = getTodayUTC();
+
+  if (
+    birth.getUTCFullYear() !== year ||
+    birth.getUTCMonth() !== month - 1 ||
+    birth.getUTCDate() !== day ||
+    birth > today
+  ) {
+    return null;
+  }
+
+  return birth;
+}
+
+// Calculate Button
+$("calculateBtn")?.addEventListener("click", async () => {
+  const value = $("dob")?.value || "";
+
+  showError("calcError", "");
+
+  if (!value) {
+    showError("calcError", "Please select your birth date.");
+    return;
+  }
+
+  const birth = getValidBirthDate(value);
+
+  if (!birth) {
+    showError("calcError", "Please enter a valid birth date.");
+    return;
+  }
+
+  // Save selected DOB before login
+  if (!currentUser) {
+    pendingBirthDateValue = value;
+
+    showError(
+      "calcError",
+      "Please sign in with Google to calculate your age."
+    );
+
+    await startGoogleLogin();
+
+    return;
+  }
+
+  // Already logged in
+  runAgeCalculation(birth);
 });
 
 // Maximum birth date = today.
