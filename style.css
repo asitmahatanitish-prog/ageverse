@@ -442,6 +442,42 @@ a:focus-visible {
   font-weight: 900;
 }
 
+
+/* HEADER GOOGLE LOGIN BUTTON */
+
+.top-google-btn {
+  min-height: 45px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  white-space: nowrap;
+  transition: .2s ease;
+}
+
+.top-google-btn:hover {
+  border-color: var(--primary);
+  background: var(--surface-2);
+  transform: translateY(-2px);
+}
+
+.top-google-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.top-google-btn .google-icon {
+  font-size: 19px;
+}
+
+
 /* =========================================
    HERO CARD
 ========================================= */
@@ -1163,5 +1199,32 @@ footer nav a:hover {
   border-radius: 4px;
 }
 
+
+/* MOBILE HEADER GOOGLE BUTTON */
+
+@media (max-width: 480px) {
+  .top-actions {
+    gap: 7px;
+  }
+
+  .top-google-btn {
+    min-height: 40px;
+    padding: 0 10px;
+    gap: 6px;
+    border-radius: 11px;
+    font-size: 11px;
+  }
+
+  .top-google-btn .google-icon {
+    font-size: 17px;
+  }
+
+  .icon-btn,
+  .avatar-btn {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+}
 
 
