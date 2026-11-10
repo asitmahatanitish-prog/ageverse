@@ -859,6 +859,7 @@ if ($("dob")) {
   ].join("-");
 }
 
+
 // ======================================
 // 10. NAVIGATION
 // ======================================
@@ -866,7 +867,13 @@ if ($("dob")) {
 document.querySelectorAll(".nav-btn[data-page]")
   .forEach(button => {
     button.addEventListener("click", () => {
-      showSection(button.dataset.page);
+      const page = button.dataset.page;
+
+      if (page === "profile" && !currentUser) {
+        return;
+      }
+
+      showSection(page);
     });
   });
 
@@ -948,6 +955,7 @@ $("logoutBtn")?.addEventListener("click", async () => {
       clearInterval(ageTimer);
       ageTimer = null;
     }
+    pendingBirthDateValue = "";
 
     await signOut(auth);
 
