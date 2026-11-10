@@ -259,19 +259,24 @@ onAuthStateChanged(auth, async user => {
       showPage("name");
     }
 
-  } catch (error) {
-    console.error("Firebase Error:", error);
+  
+} catch (error) {
+  console.error("Firebase Error:", error);
 
-    showError(
-      "nameError",
-      "Unable to load your profile. Please check your internet connection."
-    );
+  showPage("app");
+  showSection("home");
 
-    showPage("name");
+  setText("greeting", user.displayName || "Welcome to Ageverse");
 
-  } finally {
-    $("loader")?.classList.add("hidden");
-  }
+  showError(
+    "calcError",
+    "Unable to load your profile. Please check your internet connection and refresh the page."
+  );
+
+} finally {
+  $("loader")?.classList.add("hidden");
+}
+
 });
 
 // ======================================
