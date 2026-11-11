@@ -28,12 +28,16 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 const googleProvider = new GoogleAuthProvider();
+
 googleProvider.setCustomParameters({
   prompt: "select_account"
 });
 
 
-// Firestore will load only when needed
+// ======================================
+// 2. FIRESTORE LAZY LOADING
+// ======================================
+
 let firestorePromise = null;
 
 function getFirestoreTools() {
@@ -49,7 +53,6 @@ function getFirestoreTools() {
         serverTimestamp: module.serverTimestamp
       }))
       .catch(error => {
-        // Allow retry if Firestore loading fails
         firestorePromise = null;
         throw error;
       });
@@ -60,21 +63,74 @@ function getFirestoreTools() {
 
 
 // ======================================
-// 2. ELEMENTS AND HELPERS
+// 3. ELEMENTS AND GLOBAL VARIABLES
 // ======================================
 
 const $ = id => document.getElementById(id);
 
 let currentUser = null;
 let currentName = "";
+
 let ageTimer = null;
+let birthdayTimer = null;
+
 let selectedBirthDate = null;
 let pendingBirthDateValue = "";
+
 let isGoogleLoginInProgress = false;
+let authReady = false;
+
+const STORAGE_KEYS = {
+  theme: "ageverse-theme",
+  photo: "ageVerseProfilePhoto",
+  dob: "ageverse-birth-date",
+  notification: "ageverse-birthday-notification",
+  lastNotification: "ageverse-last-birthday-notification"
+};
+
+
+// ======================================
+// 4. STORAGE HELPERS
+// ======================================
+
+function storageGet(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn("Storage unavailable:", error);
+    return null;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.warn("Storage save failed:", error);
+    return false;
+  }
+}
+
+function storageRemove(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.warn("Storage remove failed:", error);
+  }
+}
+
+
+// ======================================
+// 5. COMMON HELPERS
+// ======================================
 
 function setText(id, value) {
   const element = $(id);
-  if (element) element.textContent = String(value);
+
+  if (element) {
+    element.textContent = String(value);
+  }
 }
 
 function showError(id, message) {
@@ -91,8 +147,23 @@ function setButtonLoading(button, loading, text) {
   }
 }
 
+function stopAgeTimer() {
+  if (ageTimer) {
+    clearInterval(ageTimer);
+    ageTimer = null;
+  }
+}
+
+function stopBirthdayTimer() {
+  if (birthdayTimer) {
+    clearInterval(birthdayTimer);
+    birthdayTimer = null;
+  }
+}
+
+
 // ======================================
-// 3. PAGE NAVIGATION
+// 6. PAGE NAVIGATION
 // ======================================
 
 function showPage(page) {
@@ -113,10 +184,13 @@ function showPage(page) {
   }
 }
 
+
 function showSection(section) {
+
   if (section === "profile" && !currentUser) {
-  return;
+    return;
   }
+
   $("homeSection")?.classList.add("hidden");
   $("profileSection")?.classList.add("hidden");
 
@@ -126,12 +200,14 @@ function showSection(section) {
     });
 
   if (section === "home") {
+
     $("homeSection")?.classList.remove("hidden");
 
     document.querySelector('[data-page="home"]')
       ?.classList.add("active");
 
   } else if (section === "profile") {
+
     $("profileSection")?.classList.remove("hidden");
 
     document.querySelector('[data-page="profile"]')
@@ -148,11 +224,14 @@ function showSection(section) {
 
 
 // ======================================
-// 4. GOOGLE LOGIN
+// 7. GOOGLE LOGIN
 // ======================================
 
 async function startGoogleLogin() {
-  if (currentUser || isGoogleLoginInProgress) return;
+
+  if (currentUser || isGoogleLoginInProgress) {
+    return;
+  }
 
   isGoogleLoginInProgress = true;
 
@@ -169,25 +248,39 @@ async function startGoogleLogin() {
   showError("calcError", "");
 
   try {
+
     await signInWithPopup(auth, googleProvider);
 
   } catch (error) {
+
     console.error("Google Login Error:", error);
 
-    let message = "Unable to sign in. Please try again.";
+    const messages = {
+      "auth/popup-closed-by-user":
+        "Login window was closed. Please try again.",
 
-    if (error.code === "auth/popup-closed-by-user") {
-      message = "Login window was closed. Please try again.";
-    } else if (error.code === "auth/popup-blocked") {
-      message = "Popup blocked. Please allow popups in your browser.";
-    } else if (error.code === "auth/network-request-failed") {
-      message = "Network error. Please check your internet connection.";
-    }
+      "auth/popup-blocked":
+        "Popup blocked. Please allow popups in your browser.",
+
+      "auth/network-request-failed":
+        "Network error. Please check your internet connection.",
+
+      "auth/unauthorized-domain":
+        "This domain is not authorized in Firebase.",
+
+      "auth/operation-not-allowed":
+        "Google Login is not enabled in Firebase."
+    };
+
+    const message =
+      messages[error.code] ||
+      "Unable to sign in. Please try again.";
 
     showError("loginError", message);
     showError("calcError", message);
 
   } finally {
+
     isGoogleLoginInProgress = false;
 
     buttons.forEach(button => {
@@ -196,54 +289,58 @@ async function startGoogleLogin() {
   }
 }
 
-$("googleLogin")?.addEventListener("click", startGoogleLogin);
 
-$("topGoogleLogin")?.addEventListener("click", startGoogleLogin);
+$("googleLogin")?.addEventListener(
+  "click",
+  startGoogleLogin
+);
 
+$("topGoogleLogin")?.addEventListener(
+  "click",
+  startGoogleLogin
+);
 
 
 // ======================================
-// 5. AUTHENTICATION STATE
+// 8. AUTHENTICATION STATE
 // ======================================
 
 onAuthStateChanged(auth, async user => {
+
   currentUser = user;
+  authReady = true;
 
   const profileNav = document.querySelector(
     '.nav-btn[data-page="profile"]'
   );
 
   if (!user) {
+
     currentName = "";
 
-    if (ageTimer) {
-      clearInterval(ageTimer);
-      ageTimer = null;
+    stopAgeTimer();
+    stopBirthdayTimer();
+
+    selectedBirthDate = null;
+    pendingBirthDateValue = "";
+
+    if ($("dob")) {
+      $("dob").value = "";
     }
 
-    
-selectedBirthDate = null;
-pendingBirthDateValue = "";
+    $("results")?.classList.add("hidden");
 
-if ($("dob")) {
-  $("dob").value = "";
-}
+    showError("calcError", "");
 
-$("results")?.classList.add("hidden");
-showError("calcError", "");
-
-
-    // Show public Home Page
     showPage("app");
     showSection("home");
 
     setText("greeting", "Welcome to Ageverse");
 
-    // Show Google Login button
     $("topGoogleLogin")?.classList.remove("hidden");
 
-    // Hide Profile options
     $("topProfile")?.classList.add("hidden");
+
     profileNav?.classList.add("hidden");
 
     $("loader")?.classList.add("hidden");
@@ -252,150 +349,212 @@ showError("calcError", "");
   }
 
   // Logged-in user
+
   $("topGoogleLogin")?.classList.add("hidden");
+
   $("topProfile")?.classList.remove("hidden");
+
   profileNav?.classList.remove("hidden");
 
   try {
-    const { db, doc, getDoc } = await getFirestoreTools();
+
+    const { db, doc, getDoc } =
+      await getFirestoreTools();
+
+    // Prevent outdated authentication response.
+    if (auth.currentUser?.uid !== user.uid) {
+      return;
+    }
 
     const userRef = doc(db, "users", user.uid);
+
     const userSnap = await getDoc(userRef);
 
-    if (userSnap.exists() && userSnap.data().name) {
+    if (auth.currentUser?.uid !== user.uid) {
+      return;
+    }
+
+    if (
+      userSnap.exists() &&
+      userSnap.data().name
+    ) {
+
       currentName = userSnap.data().name;
+
       openDashboard();
 
     } else {
+
       if ($("setupName")) {
-        $("setupName").value = user.displayName || "";
+        $("setupName").value =
+          user.displayName || "";
       }
 
       showPage("name");
     }
 
-  
-} catch (error) {
-  console.error("Firebase Error:", error);
-
-  showPage("app");
-  showSection("home");
-
-  setText("greeting", user.displayName || "Welcome to Ageverse");
-
-  showError(
-    "calcError",
-    "Unable to load your profile. Please check your internet connection and refresh the page."
-  );
-
-} finally {
-  $("loader")?.classList.add("hidden");
-}
-
-});
-
-// ======================================
-// 6. SAVE USER NAME
-// ======================================
-
-$("saveName")?.addEventListener("click", async () => {
-  if (!currentUser) return;
-
-  const name = $("setupName")?.value.trim() || "";
-
-  if (name.length < 2) {
-    showError(
-      "nameError",
-      "Please enter at least 2 characters."
-    );
-    return;
-  }
-
-  showError("nameError", "");
-
-  const button = $("saveName");
-
-  setButtonLoading(button, true, "Saving...");
-
-  try {
-  const {
-    db,
-    doc,
-    setDoc,
-    serverTimestamp
-  } = await getFirestoreTools();
-
-  await setDoc(
-    doc(db, "users", currentUser.uid),
-      {
-        name,
-        email: currentUser.email || "",
-        photoURL: currentUser.photoURL || "",
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
-
-    await updateProfile(currentUser, {
-      displayName: name
-    });
-
-    currentName = name;
-
-    openDashboard();
-
   } catch (error) {
-    console.error("Save Name Error:", error);
+
+    console.error("Firebase Error:", error);
+
+    showPage("app");
+
+    showSection("home");
+
+    setText(
+      "greeting",
+      user.displayName || "Welcome to Ageverse"
+    );
 
     showError(
-      "nameError",
-      "Unable to save your name. Please try again."
+      "calcError",
+      "Unable to load your profile. Please check your internet connection and refresh the page."
     );
 
   } finally {
-    setButtonLoading(button, false);
 
-    if (button) {
-      button.innerHTML = 'Continue <span>→</span>';
-    }
+    $("loader")?.classList.add("hidden");
   }
+
 });
 
 
-// ==================================
-// 7. OPEN DASHBOARD
+// ======================================
+// 9. SAVE USER NAME
+// ======================================
+
+$("saveName")?.addEventListener(
+  "click",
+  async () => {
+
+    if (!currentUser) return;
+
+    const name =
+      $("setupName")?.value.trim() || "";
+
+    if (name.length < 2) {
+
+      showError(
+        "nameError",
+        "Please enter at least 2 characters."
+      );
+
+      return;
+    }
+
+    showError("nameError", "");
+
+    const button = $("saveName");
+
+    setButtonLoading(
+      button,
+      true,
+      "Saving..."
+    );
+
+    try {
+
+      const {
+        db,
+        doc,
+        setDoc,
+        serverTimestamp
+      } = await getFirestoreTools();
+
+      if (!auth.currentUser) return;
+
+      await setDoc(
+        doc(db, "users", currentUser.uid),
+        {
+          name,
+          email: currentUser.email || "",
+          photoURL: currentUser.photoURL || "",
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      await updateProfile(currentUser, {
+        displayName: name
+      });
+
+      currentName = name;
+
+      openDashboard();
+
+    } catch (error) {
+
+      console.error("Save Name Error:", error);
+
+      showError(
+        "nameError",
+        "Unable to save your name. Please try again."
+      );
+
+    } finally {
+
+      setButtonLoading(button, false);
+
+      if (button) {
+        button.innerHTML =
+          'Continue <span>→</span>';
+      }
+    }
+  }
+);
+
+
+// ======================================
+// 10. PROFILE PHOTO HELPERS
 // ======================================
 
 function getSavedPhoto() {
-  try {
-    return localStorage.getItem("ageVerseProfilePhoto") || "";
-  } catch (error) {
-    console.warn("Photo storage unavailable:", error);
-    return "";
-  }
+  return storageGet(STORAGE_KEYS.photo) || "";
 }
 
+
 function updateProfilePhoto() {
-  const photo = getSavedPhoto() || currentUser?.photoURL || "";
+
+  const photo =
+    getSavedPhoto() ||
+    currentUser?.photoURL ||
+    "";
 
   if (photo && $("profilePhoto")) {
     $("profilePhoto").src = photo;
   }
 }
 
+
+// ======================================
+// 11. OPEN DASHBOARD
+// ======================================
+
 function openDashboard() {
+
+  if (!currentUser) return;
+
   showPage("app");
 
   $("topGoogleLogin")?.classList.add("hidden");
+
   $("topProfile")?.classList.remove("hidden");
 
   document.querySelector(
     '.nav-btn[data-page="profile"]'
   )?.classList.remove("hidden");
 
-  setText("greeting", "Welcome, " + currentName);
+  setText(
+    "greeting",
+    "Welcome, " + currentName
+  );
+
   setText("profileName", currentName);
-  setText("profileEmail", currentUser?.email || "");
+
+  setText(
+    "profileEmail",
+    currentUser.email || ""
+  );
 
   if ($("editNameInput")) {
     $("editNameInput").value = currentName;
@@ -410,31 +569,75 @@ function openDashboard() {
 
   showSection("home");
 
-  // Calculate previously selected DOB after login
+  // Restore locally saved DOB.
+
+  const savedDOB = storageGet(STORAGE_KEYS.dob);
+
+  if (savedDOB) {
+
+    const birth = getValidBirthDate(savedDOB);
+
+    if (birth) {
+
+      if ($("dob")) {
+        $("dob").value = savedDOB;
+      }
+
+      runAgeCalculation(birth, false);
+
+    } else {
+
+      storageRemove(STORAGE_KEYS.dob);
+    }
+  }
+
   processPendingBirthDate();
+
+  // Start automatic birthday checking.
+
+  startBirthdayChecking();
 }
 
-// ======================================
-// 8. PROFILE
-// ======================================
 
+// ======================================
+// 12. PROFILE
+// ======================================
 
 async function loadProfile() {
+
   if (!currentUser) return;
 
-  try {
-    const { db, doc, getDoc } = await getFirestoreTools();
+  const user = currentUser;
 
-    const userRef = doc(db, "users", currentUser.uid);
+  try {
+
+    const { db, doc, getDoc } =
+      await getFirestoreTools();
+
+    const userRef = doc(db, "users", user.uid);
+
     const snap = await getDoc(userRef);
 
+    if (auth.currentUser?.uid !== user.uid) {
+      return;
+    }
+
     if (snap.exists()) {
-      currentName = snap.data().name || currentName;
+      currentName =
+        snap.data().name || currentName;
     }
 
     setText("profileName", currentName);
-    setText("profileEmail", currentUser.email || "");
-    setText("greeting", "Welcome, " + currentName);
+
+    setText(
+      "profileEmail",
+      user.email || ""
+    );
+
+    setText(
+      "greeting",
+      "Welcome, " + currentName
+    );
 
     setText(
       "topProfile",
@@ -448,6 +651,7 @@ async function loadProfile() {
     updateProfilePhoto();
 
   } catch (error) {
+
     console.error("Profile Load Error:", error);
 
     showError(
@@ -458,107 +662,145 @@ async function loadProfile() {
 }
 
 
-// UPDATE PROFILE
+// ======================================
+// 13. UPDATE PROFILE
+// ======================================
 
-$("updateProfile")?.addEventListener("click", async () => {
-  if (!currentUser) return;
+$("updateProfile")?.addEventListener(
+  "click",
+  async () => {
 
-  const name = $("editNameInput")?.value.trim() || "";
+    if (!currentUser) return;
 
-  if (name.length < 2) {
+    const name =
+      $("editNameInput")?.value.trim() || "";
+
+    if (name.length < 2) {
+
+      const message = $("profileMessage");
+
+      if (message) {
+        message.style.color = "#e65c6a";
+        message.textContent =
+          "Enter a valid name.";
+      }
+
+      return;
+    }
+
+    const user = currentUser;
+
+    const button = $("updateProfile");
     const message = $("profileMessage");
 
-    if (message) {
-      message.style.color = "#e65c6a";
-      message.textContent = "Enter a valid name.";
-    }
-    return;
-  }
-
-  const button = $("updateProfile");
-  const message = $("profileMessage");
-
-  setButtonLoading(button, true);
-
-  if (message) {
-    message.style.color = "#ffffff";
-    message.textContent = "Saving...";
-  }
-
-  try {
-    const {
-      db,
-      doc,
-      setDoc,
-      serverTimestamp
-    } = await getFirestoreTools();
-
-    await setDoc(
-      doc(db, "users", currentUser.uid),
-      {
-        name,
-        email: currentUser.email || "",
-        updatedAt: serverTimestamp()
-      },
-      { merge: true }
-    );
-
-    await updateProfile(currentUser, {
-      displayName: name
-    });
-
-    currentName = name;
-
-    setText("profileName", name);
-    setText("greeting", "Welcome, " + name);
-
-    setText(
-      "topProfile",
-      name.charAt(0).toUpperCase()
-    );
+    setButtonLoading(button, true);
 
     if (message) {
-      message.style.color = "#22c55e";
-      message.textContent = "Profile updated successfully!";
-
-      setTimeout(() => {
-        if (
-          message.textContent ===
-          "Profile updated successfully!"
-        ) {
-          message.textContent = "";
-          message.style.color = "";
-        }
-      }, 3000);
+      message.style.color = "";
+      message.textContent = "Saving...";
     }
 
-  } catch (error) {
-    console.error("Profile Update Error:", error);
+    try {
 
-    if (message) {
-      message.style.color = "#e65c6a";
-      message.textContent =
-        "Unable to update profile. Please try again.";
+      const {
+        db,
+        doc,
+        setDoc,
+        serverTimestamp
+      } = await getFirestoreTools();
+
+      await setDoc(
+        doc(db, "users", user.uid),
+        {
+          name,
+          email: user.email || "",
+          updatedAt: serverTimestamp()
+        },
+        { merge: true }
+      );
+
+      await updateProfile(user, {
+        displayName: name
+      });
+
+      if (auth.currentUser?.uid !== user.uid) {
+        return;
+      }
+
+      currentName = name;
+
+      setText("profileName", name);
+
+      setText(
+        "greeting",
+        "Welcome, " + name
+      );
+
+      setText(
+        "topProfile",
+        name.charAt(0).toUpperCase()
+      );
+
+      if (message) {
+
+        message.style.color = "#22c55e";
+
+        message.textContent =
+          "Profile updated successfully!";
+
+        setTimeout(() => {
+
+          if (
+            message.textContent ===
+            "Profile updated successfully!"
+          ) {
+            message.textContent = "";
+            message.style.color = "";
+          }
+
+        }, 3000);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Profile Update Error:",
+        error
+      );
+
+      if (message) {
+        message.style.color = "#e65c6a";
+
+        message.textContent =
+          "Unable to update profile. Please try again.";
+      }
+
+    } finally {
+
+      setButtonLoading(button, false);
     }
-
-  } finally {
-    setButtonLoading(button, false);
   }
-});
+);
 
-    
 
 // ======================================
-// 9. ACCURATE AGE CALCULATOR
+// 14. ACCURATE AGE CALCULATOR
 // ======================================
 
-// Create a UTC date without timezone shifting.
+// UTC calendar date.
+
 function utcDate(year, month, day) {
-  return new Date(Date.UTC(year, month, day));
+
+  return new Date(
+    Date.UTC(year, month, day)
+  );
 }
 
+
 // Today's local calendar date represented in UTC.
+
 function getTodayUTC() {
+
   const now = new Date();
 
   return utcDate(
@@ -568,19 +810,29 @@ function getTodayUTC() {
   );
 }
 
+
 // Leap year check.
+
 function isLeapYear(year) {
+
   return (
     year % 4 === 0 &&
-    (year % 100 !== 0 || year % 400 === 0)
+    (
+      year % 100 !== 0 ||
+      year % 400 === 0
+    )
   );
 }
 
+
 // Birthday in a particular year.
-// February 29 becomes February 28 in non-leap years.
+
 function birthdayInYear(birth, year) {
+
   const month = birth.getUTCMonth();
   const day = birth.getUTCDate();
+
+  // February 29 becomes February 28.
 
   if (
     month === 1 &&
@@ -593,10 +845,14 @@ function birthdayInYear(birth, year) {
   return utcDate(year, month, day);
 }
 
-// Calculate exact completed years, months and days.
+
+// Calculate completed years, months and days.
+
 function calculateAge(birth, today) {
+
   let years =
-    today.getUTCFullYear() - birth.getUTCFullYear();
+    today.getUTCFullYear() -
+    birth.getUTCFullYear();
 
   let anniversary = birthdayInYear(
     birth,
@@ -604,6 +860,7 @@ function calculateAge(birth, today) {
   );
 
   if (anniversary > today) {
+
     years--;
 
     anniversary = birthdayInYear(
@@ -616,6 +873,7 @@ function calculateAge(birth, today) {
   let cursor = anniversary;
 
   while (months < 11) {
+
     const nextMonth = utcDate(
       cursor.getUTCFullYear(),
       cursor.getUTCMonth() + 1,
@@ -631,7 +889,10 @@ function calculateAge(birth, today) {
     const next = utcDate(
       nextMonth.getUTCFullYear(),
       nextMonth.getUTCMonth(),
-      Math.min(anniversary.getUTCDate(), lastDay)
+      Math.min(
+        anniversary.getUTCDate(),
+        lastDay
+      )
     );
 
     if (next > today) break;
@@ -641,7 +902,8 @@ function calculateAge(birth, today) {
   }
 
   const days = Math.floor(
-    (today.getTime() - cursor.getTime()) / 86400000
+    (today.getTime() - cursor.getTime()) /
+    86400000
   );
 
   return {
@@ -651,19 +913,33 @@ function calculateAge(birth, today) {
   };
 }
 
+
 // Next birthday information.
+
 function getBirthdayInfo(birth, today) {
+
   let year = today.getUTCFullYear();
 
-  let next = birthdayInYear(birth, year);
+  let next = birthdayInYear(
+    birth,
+    year
+  );
 
   if (next < today) {
+
     year++;
-    next = birthdayInYear(birth, year);
+
+    next = birthdayInYear(
+      birth,
+      year
+    );
   }
 
   const diff = Math.round(
-    (next.getTime() - today.getTime()) / 86400000
+    (
+      next.getTime() -
+      today.getTime()
+    ) / 86400000
   );
 
   return {
@@ -672,32 +948,39 @@ function getBirthdayInfo(birth, today) {
   };
 }
 
+
 // Number formatting.
+
 function formatNumber(number) {
-  return Number(number).toLocaleString("en-IN");
+
+  return Number(number).toLocaleString(
+    "en-IN"
+  );
 }
+
 
 // Date formatting.
+
 function formatDate(date) {
-  return date.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC"
-  });
+
+  return date.toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC"
+    }
+  );
 }
 
-// Calculate elapsed time from local midnight on DOB.
-function getBirthTimestamp(birth) {
-  return new Date(
-    birth.getUTCFullYear(),
-    birth.getUTCMonth(),
-    birth.getUTCDate()
-  ).getTime();
-}
 
-// Update all age results.
+// ======================================
+// 15. UPDATE AGE REPORT
+// ======================================
+
 function updateAgeReport() {
+
   if (!selectedBirthDate) return;
 
   const today = getTodayUTC();
@@ -710,16 +993,42 @@ function updateAgeReport() {
   const totalMonths =
     age.years * 12 + age.months;
 
+  // Calculate elapsed time from local midnight.
+
   const elapsedMs = Math.max(
     0,
-    Date.now() - getBirthTimestamp(selectedBirthDate)
+    Date.now() -
+    new Date(
+      selectedBirthDate.getUTCFullYear(),
+      selectedBirthDate.getUTCMonth(),
+      selectedBirthDate.getUTCDate()
+    ).getTime()
   );
 
-  const totalSeconds = Math.floor(elapsedMs / 1000);
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const totalHours = Math.floor(totalMinutes / 60);
-  const totalDays = Math.floor(totalHours / 24);
-  const totalWeeks = Math.floor(totalDays / 7);
+  const totalSeconds = Math.floor(
+    elapsedMs / 1000
+  );
+
+  const totalMinutes = Math.floor(
+    totalSeconds / 60
+  );
+
+  const totalHours = Math.floor(
+    totalMinutes / 60
+  );
+
+  // Calendar-based total days.
+
+  const totalDays = Math.floor(
+    (
+      today.getTime() -
+      selectedBirthDate.getTime()
+    ) / 86400000
+  );
+
+  const totalWeeks = Math.floor(
+    totalDays / 7
+  );
 
   setText("years", age.years);
 
@@ -728,12 +1037,35 @@ function updateAgeReport() {
     `${age.months} months and ${age.days} days`
   );
 
-  setText("totalMonths", formatNumber(totalMonths));
-  setText("totalWeeks", formatNumber(totalWeeks));
-  setText("totalDays", formatNumber(totalDays));
-  setText("totalHours", formatNumber(totalHours));
-  setText("totalMinutes", formatNumber(totalMinutes));
-  setText("totalSeconds", formatNumber(totalSeconds));
+  setText(
+    "totalMonths",
+    formatNumber(totalMonths)
+  );
+
+  setText(
+    "totalWeeks",
+    formatNumber(totalWeeks)
+  );
+
+  setText(
+    "totalDays",
+    formatNumber(totalDays)
+  );
+
+  setText(
+    "totalHours",
+    formatNumber(totalHours)
+  );
+
+  setText(
+    "totalMinutes",
+    formatNumber(totalMinutes)
+  );
+
+  setText(
+    "totalSeconds",
+    formatNumber(totalSeconds)
+  );
 
   const birthday = getBirthdayInfo(
     selectedBirthDate,
@@ -754,10 +1086,13 @@ function updateAgeReport() {
 
   setText(
     "birthDay",
-    selectedBirthDate.toLocaleDateString("en-US", {
-      weekday: "long",
-      timeZone: "UTC"
-    })
+    selectedBirthDate.toLocaleDateString(
+      "en-US",
+      {
+        weekday: "long",
+        timeZone: "UTC"
+      }
+    )
   );
 
   setText(
@@ -766,15 +1101,38 @@ function updateAgeReport() {
   );
 }
 
+
 // ======================================
-// CALCULATE AGE
+// 16. RUN AGE CALCULATION
 // ======================================
 
-function runAgeCalculation(birth) {
+function runAgeCalculation(
+  birth,
+  saveDate = true
+) {
+
   selectedBirthDate = birth;
 
   if (ageTimer) {
     clearInterval(ageTimer);
+  }
+
+  if (saveDate) {
+
+    const year = birth.getUTCFullYear();
+
+    const month = String(
+      birth.getUTCMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+      birth.getUTCDate()
+    ).padStart(2, "0");
+
+    storageSet(
+      STORAGE_KEYS.dob,
+      `${year}-${month}-${day}`
+    );
   }
 
   updateAgeReport();
@@ -790,17 +1148,39 @@ function runAgeCalculation(birth) {
     behavior: "smooth",
     block: "start"
   });
+
+  // Check birthday after calculation.
+
+  checkBirthdayNotification();
 }
 
-// Process DOB saved before Google Login
-function processPendingBirthDate() {
-  if (!currentUser || !pendingBirthDateValue) return;
 
-  const birth = getValidBirthDate(pendingBirthDateValue);
+// ======================================
+// 17. PENDING DOB
+// ======================================
+
+function processPendingBirthDate() {
+
+  if (
+    !currentUser ||
+    !pendingBirthDateValue
+  ) {
+    return;
+  }
+
+  const birth = getValidBirthDate(
+    pendingBirthDateValue
+  );
 
   if (!birth) {
+
     pendingBirthDateValue = "";
-    showError("calcError", "Please select a valid birth date again.");
+
+    showError(
+      "calcError",
+      "Please select a valid birth date again."
+    );
+
     return;
   }
 
@@ -808,15 +1188,27 @@ function processPendingBirthDate() {
 
   runAgeCalculation(birth);
 }
-// Validate DOB
+
+
+// ======================================
+// 18. VALIDATE DOB
+// ======================================
+
 function getValidBirthDate(value) {
+
   if (!value) return null;
 
   const parts = value.split("-");
 
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3) {
+    return null;
+  }
 
-  const [year, month, day] = parts.map(Number);
+  const [
+    year,
+    month,
+    day
+  ] = parts.map(Number);
 
   if (
     !Number.isInteger(year) ||
@@ -826,7 +1218,12 @@ function getValidBirthDate(value) {
     return null;
   }
 
-  const birth = utcDate(year, month - 1, day);
+  const birth = utcDate(
+    year,
+    month - 1,
+    day
+  );
+
   const today = getTodayUTC();
 
   if (
@@ -841,122 +1238,169 @@ function getValidBirthDate(value) {
   return birth;
 }
 
-// Calculate Button
-$("calculateBtn")?.addEventListener("click", async () => {
-  const value = $("dob")?.value || "";
 
-  showError("calcError", "");
+// ======================================
+// 19. CALCULATE BUTTON
+// ======================================
 
-  if (!value) {
-    showError("calcError", "Please select your birth date.");
-    return;
+$("calculateBtn")?.addEventListener(
+  "click",
+  async () => {
+
+    const value = $("dob")?.value || "";
+
+    showError("calcError", "");
+
+    if (!value) {
+
+      showError(
+        "calcError",
+        "Please select your birth date."
+      );
+
+      return;
+    }
+
+    const birth = getValidBirthDate(value);
+
+    if (!birth) {
+
+      showError(
+        "calcError",
+        "Please enter a valid birth date."
+      );
+
+      return;
+    }
+
+    // Google Login is mandatory for calculation.
+
+    if (!currentUser) {
+
+      pendingBirthDateValue = value;
+
+      showError(
+        "calcError",
+        "Please sign in with Google to calculate your age."
+      );
+
+      await startGoogleLogin();
+
+      return;
+    }
+
+    runAgeCalculation(birth);
   }
+);
 
-  const birth = getValidBirthDate(value);
 
-  if (!birth) {
-    showError("calcError", "Please enter a valid birth date.");
-    return;
-  }
+// Maximum DOB = Today.
 
-  // Save selected DOB before login
-  if (!currentUser) {
-    pendingBirthDateValue = value;
-
-    showError(
-      "calcError",
-      "Please sign in with Google to calculate your age."
-    );
-
-    await startGoogleLogin();
-
-    return;
-  }
-
-  // Already logged in
-  runAgeCalculation(birth);
-});
-
-// Maximum birth date = today.
 if ($("dob")) {
+
   const now = new Date();
 
   $("dob").max = [
     now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, "0"),
-    String(now.getDate()).padStart(2, "0")
+
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0"),
+
+    String(
+      now.getDate()
+    ).padStart(2, "0")
+
   ].join("-");
 }
 
 
 // ======================================
-// 10. NAVIGATION
+// 20. NAVIGATION
 // ======================================
 
-document.querySelectorAll(".nav-btn[data-page]")
-  .forEach(button => {
-    button.addEventListener("click", () => {
+document.querySelectorAll(
+  ".nav-btn[data-page]"
+).forEach(button => {
+
+  button.addEventListener(
+    "click",
+    () => {
+
       const page = button.dataset.page;
 
-      if (page === "profile" && !currentUser) {
+      if (
+        page === "profile" &&
+        !currentUser
+      ) {
         return;
       }
 
       showSection(page);
-    });
-  });
-
-$("topProfile")?.addEventListener("click", () => {
-  if (currentUser) {
-    showSection("profile");
-  }
+    }
+  );
 });
 
+
+$("topProfile")?.addEventListener(
+  "click",
+  () => {
+
+    if (currentUser) {
+      showSection("profile");
+    }
+  }
+);
+
+
 // ======================================
-// 11. DARK / LIGHT THEME
+// 21. DARK / LIGHT THEME
 // ======================================
 
 function setTheme(theme) {
+
   const selectedTheme =
-    theme === "dark" ? "dark" : "light";
+    theme === "dark"
+      ? "dark"
+      : "light";
 
   document.documentElement.dataset.theme =
     selectedTheme;
 
-  try {
-    localStorage.setItem(
-      "ageverse-theme",
-      selectedTheme
-    );
-  } catch (error) {
-    console.warn("Theme could not be saved:", error);
-  }
+  storageSet(
+    STORAGE_KEYS.theme,
+    selectedTheme
+  );
 
   if ($("themeToggle")) {
+
     $("themeToggle").textContent =
-      selectedTheme === "dark" ? "☀" : "☾";
+      selectedTheme === "dark"
+        ? "☀"
+        : "☾";
   }
 }
 
-let savedTheme = "light";
 
-try {
-  savedTheme =
-    localStorage.getItem("ageverse-theme") || "light";
-} catch (error) {
-  console.warn("Theme storage unavailable:", error);
-}
+const savedTheme =
+  storageGet(STORAGE_KEYS.theme) ||
+  "light";
 
 setTheme(savedTheme);
 
+
 function toggleTheme() {
+
   const currentTheme =
     document.documentElement.dataset.theme;
 
   setTheme(
-    currentTheme === "dark" ? "light" : "dark"
+    currentTheme === "dark"
+      ? "light"
+      : "dark"
   );
 }
+
 
 $("themeToggle")?.addEventListener(
   "click",
@@ -968,239 +1412,575 @@ $("sideTheme")?.addEventListener(
   toggleTheme
 );
 
+
 // ======================================
-// 12. LOGOUT
+// 22. LOGOUT
 // ======================================
 
-$("logoutBtn")?.addEventListener("click", async () => {
-  const confirmed = confirm(
-    "Are you sure you want to sign out?"
-  );
+$("logoutBtn")?.addEventListener(
+  "click",
+  async () => {
 
-  if (!confirmed) return;
-
-  try {
-    if (ageTimer) {
-      clearInterval(ageTimer);
-      ageTimer = null;
-    }
-    pendingBirthDateValue = "";
-
-    await signOut(auth);
-
-  } catch (error) {
-    console.error("Logout Error:", error);
-
-    alert(
-      "Logout failed. Please try again."
+    const confirmed = confirm(
+      "Are you sure you want to sign out?"
     );
+
+    if (!confirmed) return;
+
+    try {
+
+      stopAgeTimer();
+      stopBirthdayTimer();
+
+      pendingBirthDateValue = "";
+
+      selectedBirthDate = null;
+
+      await signOut(auth);
+
+    } catch (error) {
+
+      console.error(
+        "Logout Error:",
+        error
+      );
+
+      alert(
+        "Logout failed. Please try again."
+      );
+    }
   }
-});
+);
+
 
 // ======================================
-// 13. PROFILE PHOTO
+// 23. PROFILE PHOTO
 // ======================================
 
 const photoInput = $("profilePhotoInput");
+
 const choosePhotoBtn = $("choosePhotoBtn");
+
 const profilePhoto = $("profilePhoto");
 
-choosePhotoBtn?.addEventListener("click", () => {
-  photoInput?.click();
-});
 
-photoInput?.addEventListener("change", () => {
-  const file = photoInput.files?.[0];
+choosePhotoBtn?.addEventListener(
+  "click",
+  () => {
 
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
-    alert("Please select a valid image.");
-    photoInput.value = "";
-    return;
+    photoInput?.click();
   }
+);
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Please select an image smaller than 5 MB.");
-    photoInput.value = "";
-    return;
-  }
 
-  const reader = new FileReader();
+photoInput?.addEventListener(
+  "change",
+  () => {
 
-  reader.onload = event => {
-    const img = new Image();
+    const file = photoInput.files?.[0];
 
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const size = 300;
+    if (!file) return;
 
-      canvas.width = size;
-      canvas.height = size;
+    if (!file.type.startsWith("image/")) {
 
-      const ctx = canvas.getContext("2d");
-
-      if (!ctx) {
-        alert("Unable to process this image.");
-        return;
-      }
-
-      // Center crop to square without stretching.
-      const cropSize = Math.min(
-        img.width,
-        img.height
+      alert(
+        "Please select a valid image."
       );
 
-      const cropX = (img.width - cropSize) / 2;
-      const cropY = (img.height - cropSize) / 2;
+      photoInput.value = "";
 
-      ctx.drawImage(
-        img,
-        cropX,
-        cropY,
-        cropSize,
-        cropSize,
-        0,
-        0,
-        size,
-        size
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+
+      alert(
+        "Please select an image smaller than 5 MB."
       );
 
-      const imageData = canvas.toDataURL(
-        "image/jpeg",
-        0.75
-      );
+      photoInput.value = "";
 
-      try {
-        localStorage.setItem(
-          "ageVerseProfilePhoto",
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = event => {
+
+      const img = new Image();
+
+      img.onload = () => {
+
+        const canvas =
+          document.createElement("canvas");
+
+        const size = 300;
+
+        canvas.width = size;
+        canvas.height = size;
+
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+
+          alert(
+            "Unable to process this image."
+          );
+
+          return;
+        }
+
+        // Center crop.
+
+        const cropSize = Math.min(
+          img.width,
+          img.height
+        );
+
+        const cropX =
+          (img.width - cropSize) / 2;
+
+        const cropY =
+          (img.height - cropSize) / 2;
+
+        ctx.drawImage(
+          img,
+          cropX,
+          cropY,
+          cropSize,
+          cropSize,
+          0,
+          0,
+          size,
+          size
+        );
+
+        const imageData =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.75
+          );
+
+        const saved = storageSet(
+          STORAGE_KEYS.photo,
           imageData
         );
 
-        if (profilePhoto) {
-          profilePhoto.src = imageData;
+        if (saved) {
+
+          if (profilePhoto) {
+            profilePhoto.src = imageData;
+          }
+
+          alert(
+            "Profile photo saved!"
+          );
+
+        } else {
+
+          alert(
+            "Storage full. Please choose a smaller image."
+          );
         }
+      };
 
-        alert("Profile photo saved!");
-
-      } catch (error) {
-        console.error("Photo Storage Error:", error);
+      img.onerror = () => {
 
         alert(
-          "Storage full. Please choose a smaller image."
+          "Unable to open this image."
         );
-      }
+      };
+
+      img.src = event.target.result;
     };
 
-    img.onerror = () => {
-      alert("Unable to open this image.");
+    reader.onerror = () => {
+
+      alert(
+        "Unable to read this image."
+      );
     };
 
-    img.src = event.target.result;
-  };
+    reader.readAsDataURL(file);
+  }
+);
 
-  reader.onerror = () => {
-    alert("Unable to read this image.");
-  };
-
-  reader.readAsDataURL(file);
-});
 
 // Load saved profile photo.
+
 updateProfilePhoto();
 
+
 // ======================================
-// 14. PWA SERVICE WORKER
+// 24. PWA SERVICE WORKER
 // ======================================
 
+let serviceWorkerRegistration = null;
+
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker
-      .register("./service-worker.js")
-      .then(registration => {
+
+  window.addEventListener(
+    "load",
+    async () => {
+
+      try {
+
+        serviceWorkerRegistration =
+          await navigator.serviceWorker.register(
+            "./service-worker.js"
+          );
+
         console.log(
           "Ageverse Service Worker registered:",
-          registration.scope
+          serviceWorkerRegistration.scope
         );
-      })
-      .catch(error => {
+
+      } catch (error) {
+
         console.error(
           "Service Worker registration failed:",
           error
         );
-      });
-  });
+      }
+    }
+  );
 }
 
+
 // ======================================
-// 15. BIRTHDAY NOTIFICATION SETTINGS
+// 25. AUTOMATIC BIRTHDAY NOTIFICATION
 // ======================================
 
-const birthdayNotifyBtn = $("birthdayNotifyBtn");
-const birthdayNotifyStatus = $("birthdayNotifyStatus");
+// Notification setting.
 
-birthdayNotifyBtn?.addEventListener("click", async () => {
+function isBirthdayNotificationEnabled() {
+
+  return (
+    storageGet(STORAGE_KEYS.notification) ===
+    "enabled"
+  );
+}
+
+
+// Check whether today is the birthday.
+
+function isTodayBirthday(birth) {
+
+  if (!birth) return false;
+
+  const today = getTodayUTC();
+
+  const birthday = birthdayInYear(
+    birth,
+    today.getUTCFullYear()
+  );
+
+  return (
+    birthday.getUTCMonth() ===
+      today.getUTCMonth() &&
+    birthday.getUTCDate() ===
+      today.getUTCDate()
+  );
+}
+
+
+// Prevent duplicate notifications.
+
+function getTodayNotificationKey() {
+
+  const now = new Date();
+
+  return [
+    now.getFullYear(),
+    String(
+      now.getMonth() + 1
+    ).padStart(2, "0"),
+    String(
+      now.getDate()
+    ).padStart(2, "0")
+  ].join("-");
+}
+
+
+// Show birthday notification.
+
+async function showBirthdayNotification() {
+
+  if (!currentUser) return;
+
   if (!("Notification" in window)) {
-    setText(
-      "birthdayNotifyStatus",
-      "Your browser does not support notifications."
-    );
     return;
   }
 
-  if (Notification.permission === "denied") {
-    setText(
-      "birthdayNotifyStatus",
-      "Notifications are blocked. Please allow them in your browser site settings."
+  if (Notification.permission !== "granted") {
+    return;
+  }
+
+  if (!isBirthdayNotificationEnabled()) {
+    return;
+  }
+
+  if (!selectedBirthDate) return;
+
+  if (!isTodayBirthday(selectedBirthDate)) {
+    return;
+  }
+
+  const todayKey =
+    getTodayNotificationKey();
+
+  const lastNotification =
+    storageGet(
+      STORAGE_KEYS.lastNotification
     );
+
+  if (lastNotification === todayKey) {
     return;
   }
 
   try {
-    let permission = Notification.permission;
 
-    // Ask only after the user clicks the button.
-    if (permission === "default") {
-      permission = await Notification.requestPermission();
+    let registration =
+      serviceWorkerRegistration;
+
+    if (!registration) {
+
+      registration =
+        await navigator.serviceWorker.ready;
     }
 
-    if (permission !== "granted") {
-      setText(
-        "birthdayNotifyStatus",
-        "Notification permission was not granted."
-      );
-      return;
-    }
+    await registration.showNotification(
+      "Happy Birthday! 🎂",
+      {
+        body:
+          "Today is your birthday! Have a wonderful day from Ageverse. 🎉",
 
-    if (!("serviceWorker" in navigator)) {
-      setText(
-        "birthdayNotifyStatus",
-        "Service Worker is not supported."
-      );
-      return;
-    }
+        icon: "./icon-192.png",
 
-    const registration =
-      await navigator.serviceWorker.ready;
+        badge: "./icon-192.png",
 
-    await registration.showNotification("Ageverse", {
-      body: "Birthday notification test is working! 🎉",
-      icon: "./icon-192.png",
-      badge: "./icon-192.png"
-    });
+        tag: "ageverse-birthday-" + todayKey,
+
+        renotify: false
+      }
+    );
+
+    storageSet(
+      STORAGE_KEYS.lastNotification,
+      todayKey
+    );
 
     setText(
       "birthdayNotifyStatus",
-      "Notification test successful! 🎉"
+      "Birthday reminder delivered! 🎉"
     );
 
   } catch (error) {
-    console.error("Notification Error:", error);
 
-    setText(
-      "birthdayNotifyStatus",
-      "Unable to show notification. Please check browser settings."
+    console.error(
+      "Birthday Notification Error:",
+      error
     );
   }
-});
+}
+
+
+// Check birthday notification.
+
+function checkBirthdayNotification() {
+
+  if (
+    !currentUser ||
+    !selectedBirthDate
+  ) {
+    return;
+  }
+
+  if (!isBirthdayNotificationEnabled()) {
+    return;
+  }
+
+  showBirthdayNotification();
+}
+
+
+// Start automatic birthday checking.
+
+function startBirthdayChecking() {
+
+  stopBirthdayTimer();
+
+  if (!currentUser) return;
+
+  if (!selectedBirthDate) return;
+
+  checkBirthdayNotification();
+
+  // Check every minute.
+
+  birthdayTimer = setInterval(
+    () => {
+
+      if (
+        document.visibilityState === "visible"
+      ) {
+
+        checkBirthdayNotification();
+      }
+
+    },
+    60000
+  );
+}
+
+
+// Check again when user returns to the page.
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+
+    if (
+      document.visibilityState === "visible" &&
+      currentUser
+    ) {
+
+      checkBirthdayNotification();
+    }
+  }
+);
+
+
+// ======================================
+// 26. BIRTHDAY NOTIFICATION SETTINGS
+// ======================================
+
+const birthdayNotifyBtn =
+  $("birthdayNotifyBtn");
+
+const birthdayNotifyStatus =
+  $("birthdayNotifyStatus");
+
+
+birthdayNotifyBtn?.addEventListener(
+  "click",
+  async () => {
+
+    if (!currentUser) {
+
+      setText(
+        "birthdayNotifyStatus",
+        "Please sign in with Google first."
+      );
+
+      return;
+    }
+
+    if (!("Notification" in window)) {
+
+      setText(
+        "birthdayNotifyStatus",
+        "Your browser does not support notifications."
+      );
+
+      return;
+    }
+
+    if (Notification.permission === "denied") {
+
+      setText(
+        "birthdayNotifyStatus",
+        "Notifications are blocked. Please allow them in your browser site settings."
+      );
+
+      return;
+    }
+
+    try {
+
+      let permission =
+        Notification.permission;
+
+      // Request permission after user interaction.
+
+      if (permission === "default") {
+
+        permission =
+          await Notification.requestPermission();
+      }
+
+      if (permission !== "granted") {
+
+        setText(
+          "birthdayNotifyStatus",
+          "Notification permission was not granted."
+        );
+
+        return;
+      }
+
+      if (!("serviceWorker" in navigator)) {
+
+        setText(
+          "birthdayNotifyStatus",
+          "Service Worker is not supported."
+        );
+
+        return;
+      }
+
+      serviceWorkerRegistration =
+        await navigator.serviceWorker.ready;
+
+      storageSet(
+        STORAGE_KEYS.notification,
+        "enabled"
+      );
+
+      setText(
+        "birthdayNotifyStatus",
+        "Automatic birthday reminders enabled! 🎉"
+      );
+
+      // Check immediately.
+
+      checkBirthdayNotification();
+
+      // Start automatic checking.
+
+      startBirthdayChecking();
+
+    } catch (error) {
+
+      console.error(
+        "Notification Setup Error:",
+        error
+      );
+
+      setText(
+        "birthdayNotifyStatus",
+        "Unable to enable notifications. Please check browser settings."
+      );
+    }
+  }
+);
+
+
+// ======================================
+// 27. INITIALIZATION
+// ======================================
+
+// Restore saved theme and profile photo.
+
+updateProfilePhoto();
+
+// Authentication observer handles login state.
+
+// No unnecessary Firestore loading here.
+
+// Wait for Firebase authentication state.
+
+console.log(
+  "Ageverse initialized successfully."
+);
 
