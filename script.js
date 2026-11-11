@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.1.0/firebase-app.js";
 
 import {
@@ -118,6 +119,17 @@ function storageRemove(key) {
   } catch (error) {
     console.warn("Storage remove failed:", error);
   }
+}
+
+
+// ======================================
+// 4.1 ACCOUNT-SPECIFIC STORAGE
+// ======================================
+
+function getUserStorageKey(key) {
+  if (!currentUser) return null;
+
+  return `${key}:${currentUser.uid}`;
 }
 
 
@@ -361,7 +373,6 @@ onAuthStateChanged(auth, async user => {
     const { db, doc, getDoc } =
       await getFirestoreTools();
 
-    // Prevent outdated authentication response.
     if (auth.currentUser?.uid !== user.uid) {
       return;
     }
@@ -509,7 +520,14 @@ $("saveName")?.addEventListener(
 // ======================================
 
 function getSavedPhoto() {
-  return storageGet(STORAGE_KEYS.photo) || "";
+
+  const key = getUserStorageKey(
+    STORAGE_KEYS.photo
+  );
+
+  return key
+    ? storageGet(key) || ""
+    : "";
 }
 
 
@@ -569,9 +587,15 @@ function openDashboard() {
 
   showSection("home");
 
-  // Restore locally saved DOB.
+  // Restore account-specific DOB.
 
-  const savedDOB = storageGet(STORAGE_KEYS.dob);
+  const dobKey = getUserStorageKey(
+    STORAGE_KEYS.dob
+  );
+
+  const savedDOB = dobKey
+    ? storageGet(dobKey)
+    : null;
 
   if (savedDOB) {
 
@@ -587,7 +611,9 @@ function openDashboard() {
 
     } else {
 
-      storageRemove(STORAGE_KEYS.dob);
+      if (dobKey) {
+        storageRemove(dobKey);
+      }
     }
   }
 
@@ -1129,10 +1155,16 @@ function runAgeCalculation(
       birth.getUTCDate()
     ).padStart(2, "0");
 
-    storageSet(
-      STORAGE_KEYS.dob,
-      `${year}-${month}-${day}`
+    const dobKey = getUserStorageKey(
+      STORAGE_KEYS.dob
     );
+
+    if (dobKey) {
+      storageSet(
+        dobKey,
+        `${year}-${month}-${day}`
+      );
+    }
   }
 
   updateAgeReport();
@@ -1561,8 +1593,23 @@ photoInput?.addEventListener(
             0.75
           );
 
+        // Save photo for current account only.
+
+        const photoKey = getUserStorageKey(
+          STORAGE_KEYS.photo
+        );
+
+        if (!photoKey) {
+
+          alert(
+            "Please sign in with Google first."
+          );
+
+          return;
+        }
+
         const saved = storageSet(
-          STORAGE_KEYS.photo,
+          photoKey,
           imageData
         );
 
@@ -1651,14 +1698,17 @@ if ("serviceWorker" in navigator) {
 // 25. AUTOMATIC BIRTHDAY NOTIFICATION
 // ======================================
 
-// Notification setting.
+// Account-specific notification setting.
 
 function isBirthdayNotificationEnabled() {
 
-  return (
-    storageGet(STORAGE_KEYS.notification) ===
-    "enabled"
+  const key = getUserStorageKey(
+    STORAGE_KEYS.notification
   );
+
+  return key
+    ? storageGet(key) === "enabled"
+    : false;
 }
 
 
@@ -1729,10 +1779,15 @@ async function showBirthdayNotification() {
   const todayKey =
     getTodayNotificationKey();
 
-  const lastNotification =
-    storageGet(
-      STORAGE_KEYS.lastNotification
-    );
+  // Account-specific notification history.
+
+  const notificationKey = getUserStorageKey(
+    STORAGE_KEYS.lastNotification
+  );
+
+  const lastNotification = notificationKey
+    ? storageGet(notificationKey)
+    : null;
 
   if (lastNotification === todayKey) {
     return;
@@ -1765,10 +1820,12 @@ async function showBirthdayNotification() {
       }
     );
 
-    storageSet(
-      STORAGE_KEYS.lastNotification,
-      todayKey
-    );
+    if (notificationKey) {
+      storageSet(
+        notificationKey,
+        todayKey
+      );
+    }
 
     setText(
       "birthdayNotifyStatus",
@@ -1932,8 +1989,18 @@ birthdayNotifyBtn?.addEventListener(
       serviceWorkerRegistration =
         await navigator.serviceWorker.ready;
 
+      // Save notification setting for current account.
+
+      const notificationKey = getUserStorageKey(
+        STORAGE_KEYS.notification
+      );
+
+      if (!notificationKey) {
+        return;
+      }
+
       storageSet(
-        STORAGE_KEYS.notification,
+        notificationKey,
         "enabled"
       );
 
@@ -1983,4 +2050,3 @@ updateProfilePhoto();
 console.log(
   "Ageverse initialized successfully."
 );
-
