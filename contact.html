@@ -1,105 +1,352 @@
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Contact Ageverse for support, feedback and questions about our Age Calculator.">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://asitmahatanitish-prog.github.io/ageverse/contact.html">
-<title>Contact Us | Ageverse</title>
 
-<style>
-*{box-sizing:border-box}
-body{
- margin:0;
- font-family:Arial,sans-serif;
- background:#101a35;
- color:#fff;
-}
-header{
- padding:22px;
- text-align:center;
- background:#17264a;
-}
-header h1{margin:0;color:#65b5ff}
-.container{
- max-width:650px;
- margin:45px auto;
- padding:25px;
-}
-.card{
- background:#19294d;
- padding:30px;
- border-radius:15px;
- text-align:center;
-}
-h2{color:#65b5ff}
-p{line-height:1.8;color:#d5def0}
-.email{
- display:inline-block;
- margin:20px 0;
- padding:14px 22px;
- background:#1677e8;
- color:white;
- text-decoration:none;
- border-radius:8px;
- overflow-wrap:anywhere;
-}
-.home{
- display:inline-block;
- color:#65b5ff;
- margin-top:20px;
- text-decoration:none;
-}
-footer{
- text-align:center;
- padding:20px;
- color:#aab8d2;
-}
-</style>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Contact Us | Ageverse - Get in Touch</title>
+
+  <meta name="description"
+    content="Contact Ageverse for questions, feedback, suggestions, or support regarding our online Age Calculator and birthday features.">
+
+  <meta name="keywords"
+    content="Contact Ageverse, Age Calculator Support, Ageverse Email, Age Calculator Feedback">
+
+  <meta name="author" content="Ageverse">
+  <meta name="robots" content="index, follow">
+
+  <meta name="theme-color" content="#6c63ff">
+
+  <link rel="canonical"
+    href="https://asitmahatanitish-prog.github.io/ageverse/contact.html">
+
+  <meta property="og:title" content="Contact Us | Ageverse">
+  <meta property="og:description"
+    content="Get in touch with Ageverse for support, questions, and feedback.">
+  <meta property="og:url"
+    content="https://asitmahatanitish-prog.github.io/ageverse/contact.html">
+  <meta property="og:type" content="website">
+
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f6ff;
+      --header: #ffffff;
+      --card: #ffffff;
+      --text: #202238;
+      --muted: #65677d;
+      --primary: #6c63ff;
+      --border: #e6e7f0;
+      --soft: #f0efff;
+      --shadow: 0 12px 40px rgba(35, 35, 80, 0.07);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        color-scheme: dark;
+        --bg: #10111b;
+        --header: #191b29;
+        --card: #191b29;
+        --text: #f1f1fa;
+        --muted: #b2b4c8;
+        --primary: #a49cff;
+        --border: #303246;
+        --soft: #25243b;
+        --shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    header {
+      background: var(--header);
+      border-bottom: 1px solid var(--border);
+      padding: 17px 20px;
+    }
+
+    .nav-container {
+      max-width: 1050px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      color: var(--primary);
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    nav a {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 45px auto;
+      padding: 0 18px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .hero h1 {
+      font-size: clamp(29px, 5vw, 38px);
+      color: var(--primary);
+      margin-bottom: 10px;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: clamp(22px, 5vw, 35px);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .card h2 {
+      color: var(--primary);
+      font-size: 23px;
+      margin-bottom: 14px;
+    }
+
+    .card p {
+      color: var(--text);
+      margin-bottom: 14px;
+    }
+
+    .email-box {
+      background: var(--soft);
+      border: 1px solid var(--border);
+      padding: 20px 15px;
+      border-radius: 13px;
+      margin: 22px 0;
+    }
+
+    .email-box h3 {
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .email {
+      display: inline-block;
+      color: var(--primary);
+      font-weight: 700;
+      overflow-wrap: anywhere;
+      font-size: 16px;
+    }
+
+    .email-button {
+      display: inline-block;
+      margin-top: 17px;
+      padding: 12px 24px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 9px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .email-button:hover {
+      opacity: 0.85;
+      text-decoration: none;
+    }
+
+    .response-note {
+      color: var(--muted) !important;
+      font-size: 14px;
+      margin-top: 18px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    footer {
+      background: var(--header);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 24px 15px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 15px;
+      }
+
+      .nav-container {
+        flex-direction: column;
+      }
+
+      nav {
+        justify-content: center;
+        gap: 14px;
+      }
+
+      .container {
+        margin: 28px auto;
+        padding: 0 13px;
+      }
+
+      .card {
+        border-radius: 14px;
+      }
+
+      .email {
+        font-size: 15px;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-<h1>Ageverse</h1>
-<p>Your Smart Age Calculator</p>
-</header>
+  <header>
+    <div class="nav-container">
 
-<div class="container">
-<div class="card">
+      <a href="./" class="logo">Ageverse</a>
 
-<h2>Contact Us</h2>
+      <nav aria-label="Main navigation">
+        <a href="./">Home</a>
+        <a href="about.html">About Us</a>
+        <a href="contact.html" aria-current="page">Contact Us</a>
+      </nav>
 
-<p>
-Welcome to Ageverse! We value your feedback.
-If you have any questions, suggestions,
-or problems using our Age Calculator,
-please contact us.
-</p>
+    </div>
+  </header>
 
-<h3>Email Support</h3>
+  <main>
 
-<p>You can contact us through the email below:</p>
+    <div class="container">
 
-<a class="email"
-href="mailto:asitmahatanitish@gmail.com">
-asitmahatanitish@gmail.com
-</a>
+      <section class="hero">
+        <h1>Contact Us</h1>
+        <p>We're here to listen to your questions and feedback.</p>
+      </section>
 
-<p>
-We will try our best to respond to your
-questions as soon as possible.
-</p>
+      <section class="card">
 
-<a class="home" href="./">← Back to Home</a>
+        <h2>Get in Touch</h2>
 
-</div>
-</div>
+        <p>
+          Welcome to Ageverse! We value our users and appreciate
+          your feedback.
+        </p>
 
-<footer>
-© 2026 Ageverse. All Rights Reserved.
-</footer>
+        <p>
+          If you have any questions, suggestions, feedback,
+          or problems while using our Age Calculator, feel free
+          to contact us through email.
+        </p>
+
+        <div class="email-box">
+
+          <h3>Email Support</h3>
+
+          <p>
+            You can reach us at the following email address:
+          </p>
+
+          <a class="email"
+            href="mailto:asitmahatanitish@gmail.com">
+            asitmahatanitish@gmail.com
+          </a>
+
+          <br>
+
+          <a class="email-button"
+            href="mailto:asitmahatanitish@gmail.com?subject=Ageverse%20Support">
+            Send Us an Email
+          </a>
+
+        </div>
+
+        <p>
+          We will review your message and try our best to respond
+          as soon as reasonably possible.
+        </p>
+
+        <p class="response-note">
+          Please include a clear description of your question
+          or issue so we can better understand your request.
+        </p>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <footer>
+
+    <p>© 2026 Ageverse. All Rights Reserved.</p>
+
+    <p>Your Time, Your Story.</p>
+
+    <div class="footer-links">
+      <a href="./">Home</a>
+      <a href="about.html">About Us</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+
+  </footer>
 
 </body>
 </html>
