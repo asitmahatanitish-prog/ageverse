@@ -1228,3 +1228,78 @@ footer nav a:hover {
 }
 
 
+/* =====================================
+   AGEVERSE ACCESSIBILITY FIX
+   PageSpeed Insights - Text Contrast
+===================================== */
+
+/* LIGHT THEME */
+:root {
+    --text: #17213c;
+    --muted: #59647a;
+    --contrast-link: #4053c9;
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+    --text: #f0f3ff;
+    --muted: #b8c4dc;
+    --contrast-link: #b7c2ff;
+}
+
+/* General text */
+p,
+small,
+.nav-label,
+.input-hint {
+    color: var(--muted);
+}
+
+/* Headings and eyebrow text */
+.eyebrow,
+.section-heading h2,
+.auth-card h1 span {
+    color: var(--text);
+}
+
+/* Sidebar */
+.nav-btn,
+.nav-label {
+    color: var(--muted);
+}
+
+/* Appearance theme button */
+#sideTheme {
+    color: var(--text);
+    border-color: var(--border);
+}
+
+/* Calculator labels */
+.calculator-card label {
+    color: var(--text);
+}
+
+/* Footer */
+footer,
+footer p {
+    color: var(--muted);
+}
+
+footer a {
+    color: var(--contrast-link);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+/* Improve readability of small text */
+small,
+.input-hint {
+    font-weight: 500;
+}
+
+/* Preserve readable disabled text */
+button:disabled {
+    color: var(--text);
+}
+
+
