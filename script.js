@@ -29,6 +29,7 @@ const auth = getAuth(app);
 
 const googleProvider = new GoogleAuthProvider();
 
+
 // Firestore will load only when needed
 let firestorePromise = null;
 
@@ -36,21 +37,24 @@ function getFirestoreTools() {
   if (!firestorePromise) {
     firestorePromise = import(
       "https://www.gstatic.com/firebasejs/13.1.0/firebase-firestore.js"
-    ).then(module => ({
-      db: module.getFirestore(app),
-      doc: module.doc,
-      getDoc: module.getDoc,
-      setDoc: module.setDoc,
-      serverTimestamp: module.serverTimestamp
-    }));
+    )
+      .then(module => ({
+        db: module.getFirestore(app),
+        doc: module.doc,
+        getDoc: module.getDoc,
+        setDoc: module.setDoc,
+        serverTimestamp: module.serverTimestamp
+      }))
+      .catch(error => {
+        // Allow retry if Firestore loading fails
+        firestorePromise = null;
+        throw error;
+      });
   }
 
   return firestorePromise;
 }
 
-googleProvider.setCustomParameters({
-  prompt: "select_account"
-});
 
 // ======================================
 // 2. ELEMENTS AND HELPERS
@@ -214,9 +218,17 @@ onAuthStateChanged(auth, async user => {
       ageTimer = null;
     }
 
-    selectedBirthDate = null;
+    
+selectedBirthDate = null;
+pendingBirthDateValue = "";
 
-    $("results")?.classList.add("hidden");
+if ($("dob")) {
+  $("dob").value = "";
+}
+
+$("results")?.classList.add("hidden");
+showError("calcError", "");
+
 
     // Show public Home Page
     showPage("app");
@@ -442,6 +454,7 @@ async function loadProfile() {
   }
 }
 
+
 // UPDATE PROFILE
 
 $("updateProfile")?.addEventListener("click", async () => {
@@ -450,38 +463,42 @@ $("updateProfile")?.addEventListener("click", async () => {
   const name = $("editNameInput")?.value.trim() || "";
 
   if (name.length < 2) {
-    showError("profileMessage", "Enter a valid name.");
+    const message = $("profileMessage");
+
+    if (message) {
+      message.style.color = "#e65c6a";
+      message.textContent = "Enter a valid name.";
+    }
     return;
   }
 
   const button = $("updateProfile");
+  const message = $("profileMessage");
 
   setButtonLoading(button, true);
 
-  const message = $("profileMessage");
-if (message) {
-  message.style.color = "#ffffff";
-  message.textContent = "Saving...";
-}
+  if (message) {
+    message.style.color = "#ffffff";
+    message.textContent = "Saving...";
+  }
 
   try {
-  const {
-    db,
-    doc,
-    setDoc,
-    serverTimestamp
-  } = await getFirestoreTools();
+    const {
+      db,
+      doc,
+      setDoc,
+      serverTimestamp
+    } = await getFirestoreTools();
 
-  await setDoc(
-    doc(db, "users", currentUser.uid),
-    {
-      name,
-      email: currentUser.email || "",
-      updatedAt: serverTimestamp()
-    },
-    { merge: true }
-  );
-
+    await setDoc(
+      doc(db, "users", currentUser.uid),
+      {
+        name,
+        email: currentUser.email || "",
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
 
     await updateProfile(currentUser, {
       displayName: name
@@ -497,32 +514,36 @@ if (message) {
       name.charAt(0).toUpperCase()
     );
 
-    const message = $("profileMessage");
+    if (message) {
+      message.style.color = "#22c55e";
+      message.textContent = "Profile updated successfully!";
 
-if (message) {
-  message.style.color = "#22c55e";
-  message.textContent = "Profile updated successfully!";
-
-  setTimeout(() => {
-    if (message.textContent === "Profile updated successfully!") {
-      message.textContent = "";
-      message.style.color = "";
+      setTimeout(() => {
+        if (
+          message.textContent ===
+          "Profile updated successfully!"
+        ) {
+          message.textContent = "";
+          message.style.color = "";
+        }
+      }, 3000);
     }
-  }, 3000);
-}
 
   } catch (error) {
     console.error("Profile Update Error:", error);
 
-    showError(
-      "profileMessage",
-      "Unable to update profile. Please try again."
-    );
+    if (message) {
+      message.style.color = "#e65c6a";
+      message.textContent =
+        "Unable to update profile. Please try again.";
+    }
 
   } finally {
     setButtonLoading(button, false);
   }
 });
+
+    
 
 // ======================================
 // 9. ACCURATE AGE CALCULATOR
