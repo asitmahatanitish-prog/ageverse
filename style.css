@@ -1228,78 +1228,104 @@ footer nav a:hover {
 }
 
 
+
 /* =====================================
-   AGEVERSE ACCESSIBILITY FIX
-   PageSpeed Insights - Text Contrast
+   AGEVERSE - ACCESSIBILITY FIX V2
+   Improved Text Contrast
 ===================================== */
 
-/* LIGHT THEME */
+/* Light Theme */
 :root {
-    --text: #17213c;
-    --muted: #59647a;
-    --contrast-link: #4053c9;
+  --text: #17213c;
+  --muted: #59647a;
+  --primary: #4054db;
+  --primary-dark: #3043bd;
+  --contrast-link: #3043bd;
 }
 
-/* DARK THEME */
+/* Dark Theme */
 [data-theme="dark"] {
-    --text: #f0f3ff;
-    --muted: #b8c4dc;
-    --contrast-link: #b7c2ff;
-}
-
-/* General text */
-p,
-small,
-.nav-label,
-.input-hint {
-    color: var(--muted);
-}
-
-/* Headings and eyebrow text */
-.eyebrow,
-.section-heading h2,
-.auth-card h1 span {
-    color: var(--text);
+  --text: #f0f3ff;
+  --muted: #c1cbe0;
+  --primary: #aab7ff;
+  --primary-dark: #c0caff;
+  --contrast-link: #c0caff;
 }
 
 /* Sidebar */
-.nav-btn,
-.nav-label {
-    color: var(--muted);
+.sidebar .brand small,
+.sidebar .nav-label,
+.sidebar .nav-btn,
+.sidebar-bottom p {
+  color: var(--muted);
 }
 
-/* Appearance theme button */
+/* Theme Button */
 #sideTheme {
-    color: var(--text);
-    border-color: var(--border);
+  color: var(--text);
 }
 
-/* Calculator labels */
-.calculator-card label {
-    color: var(--text);
+/* Main Text */
+.main-content p,
+.main-content small,
+.input-hint {
+  color: var(--muted);
+}
+
+/* Headings */
+.section-heading h2,
+.topbar h2,
+.profile-card h2 {
+  color: var(--text);
+}
+
+/* Eyebrow Labels */
+.eyebrow {
+  color: var(--primary-dark);
+}
+
+/* Calculator */
+.calculator-card label,
+.profile-field label {
+  color: var(--text);
 }
 
 /* Footer */
-footer,
-footer p {
-    color: var(--muted);
+footer {
+  color: var(--muted);
 }
 
-footer a {
-    color: var(--contrast-link);
-    text-decoration: underline;
-    text-underline-offset: 3px;
+footer h2 {
+  color: var(--text);
 }
 
-/* Improve readability of small text */
-small,
-.input-hint {
-    font-weight: 500;
+footer nav a {
+  color: var(--contrast-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-/* Preserve readable disabled text */
+/* FAQ */
+.faq-item summary {
+  color: var(--contrast-link);
+}
+
+.faq-item p {
+  color: var(--text);
+}
+
+/* Dark Theme Special Text */
+[data-theme="dark"] .eyebrow {
+  color: #c0caff;
+}
+
+[data-theme="dark"] .nav-btn.active {
+  color: #c0caff;
+}
+
+/* Disabled Button */
 button:disabled {
-    color: var(--text);
+  opacity: 0.7;
 }
 
 
