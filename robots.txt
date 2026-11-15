@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://asitmahatanitish-prog.github.io/ageverse/sitemap.xml
+
