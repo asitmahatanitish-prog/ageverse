@@ -1329,3 +1329,151 @@ button:disabled {
 }
 
 
+/* =================================
+   AGEVERSE GLOBAL FOOTER
+================================= */
+
+.site-footer {
+  width: 100%;
+  margin-top: 35px;
+  padding: 35px 18px 22px;
+  background: var(--card, #19294d);
+  border-top: 1px solid var(--border, #303246);
+  text-align: center;
+}
+
+.footer-inner {
+  max-width: 1050px;
+  margin: 0 auto;
+}
+
+.footer-logo {
+  display: inline-block;
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--primary, #a49cff);
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.footer-logo:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.footer-tagline {
+  margin: 8px 0 20px;
+  color: var(--muted, #b2b4c8);
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  margin: 22px 0;
+}
+
+.footer-links a {
+  color: var(--text, #f1f1fa);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: var(--primary, #a49cff);
+  text-decoration: underline;
+}
+
+.footer-email {
+  margin: 15px 0;
+  font-size: 13px;
+  color: var(--muted, #b2b4c8);
+}
+
+.footer-email a {
+  color: var(--primary, #a49cff);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.footer-email a:hover {
+  text-decoration: underline;
+}
+
+.footer-copyright {
+  margin-top: 20px;
+  padding-top: 17px;
+  border-top: 1px solid var(--border, #303246);
+  color: var(--muted, #b2b4c8);
+  font-size: 12px;
+}
+
+/* =================================
+   EXPLORE AGEVERSE SECTION
+================================= */
+
+.explore-section {
+  margin-top: 30px;
+  padding: 25px;
+  border-radius: 15px;
+}
+
+.explore-section h2 {
+  margin-bottom: 12px;
+}
+
+.explore-section p {
+  line-height: 1.7;
+}
+
+.explore-section ul {
+  padding-left: 22px;
+  margin-top: 15px;
+}
+
+.explore-section li {
+  margin-bottom: 10px;
+}
+
+.explore-section a {
+  color: var(--primary, #a49cff);
+  text-decoration: none;
+}
+
+.explore-section a:hover {
+  text-decoration: underline;
+}
+
+/* =================================
+   MOBILE RESPONSIVE FOOTER
+================================= */
+
+@media (max-width: 600px) {
+
+  .site-footer {
+    padding: 28px 15px 18px;
+  }
+
+  .footer-links {
+    gap: 14px 18px;
+  }
+
+  .footer-links a {
+    font-size: 13px;
+  }
+
+  .footer-email {
+    font-size: 12px;
+  }
+
+  .explore-section {
+    padding: 18px 12px;
+  }
+
+}
+
